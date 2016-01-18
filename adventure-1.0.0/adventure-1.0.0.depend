@@ -1,0 +1,49 @@
+# depslib dependency file v1.0
+1452629515 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\engine.cpp
+	<iostream>
+	<allegro5/allegro.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro_font.h>
+	<allegro5/allegro_ttf.h>
+	<allegro5/allegro_native_dialog.h>
+
+1452649826 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\file-io.cpp
+	<cstdlib>
+	<iostream>
+	<fstream>
+	<string>
+	<cstring>
+	<allegro5/allegro.h>
+
+1452629516 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\game.cpp
+	<iostream>
+	<cmath>
+	<allegro5/allegro.h>
+	<allegro5/allegro_font.h>
+
+1450037304 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\assets.cpp
+	<iostream>
+	<string>
+	<allegro5/allegro5.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro_font.h>
+
+1447814490 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\map.cpp
+	<iostream>
+	<string>
+	<allegro5/allegro5.h>
+	<allegro5/allegro_image.h>
+
+1449941368 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\options.cpp
+	<iostream>
+	<fstream>
+	<allegro5/allegro.h>
+
+1449939084 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\menu.cpp
+	<iostream>
+	<allegro5/allegro.h>
+
+1449424789 source:c:\users\zach\documents\files\projects\c++\adventure-1.0.0\input-manager.cpp
+	<iostream>
+	<allegro5/allegro.h>
+
