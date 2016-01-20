@@ -268,7 +268,7 @@ class ConversationWindow;
  * Abstract, generic class for representing objects
  */
 class Object {
-    protected:
+    public:
         int id;
         int flags;
         int sprite;
@@ -278,7 +278,7 @@ class Object {
         Domain dom;
         Area* loc;
         ALLEGRO_USTR* name;
-    public:
+    //public:
         Object(int);
         void add_flag(int);
         void remove_flag(int);
@@ -840,6 +840,7 @@ Area::Area() {
         for (int j = 0; j < 64; j++) { tiles[i][j] = (i+j)%3; }
     }
     num_objects = 0;
+    cout << "[GAME] " << &num_objects << "\n";
 }
 
 ALLEGRO_BITMAP* Area::get_tile(int x, int y) {
@@ -894,6 +895,7 @@ void Area::add_object(Object* object) {
     if (Item* item = dynamic_cast<Item*>(object)) {
         if (item->within != NULL) { item->within->remove_item(item); }
     }
+    object->set_locale(this);
     delete[] objects;
     objects = temp;
 }
@@ -914,6 +916,7 @@ void Area::remove_object(Object* object) {
             temp[i-1] = objects[i];
         }
     }
+    object->set_locale(NULL);
     delete[] objects;
     objects = temp;
 }
@@ -946,6 +949,7 @@ void Area::resort_objects() {
  */
 bool Area::check_collisions(Object* o) {
     // SEGMENTATION FAULT occurs in next line. Why? WHO THE FUCK KNOWS
+    cout << "[GAME] " << &num_objects << "\n";
     for (int i = 0; i < num_objects; i++) {
         if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
             if (o != objects[i]) { return false; }
