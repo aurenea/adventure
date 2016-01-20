@@ -64,6 +64,27 @@ ALLEGRO_COLOR transparent;
 ALLEGRO_COLOR invisible;
 ALLEGRO_COLOR sky;
 
+ALLEGRO_COLOR s_pigment[4];
+ALLEGRO_COLOR h_pigment[6];
+
+void populate_colors() {
+    dark = al_map_rgb(128, 128, 128);
+    transparent = al_map_rgba(128, 128, 128, 128);
+    invisible = al_map_rgba(64, 64, 64, 64);
+
+    s_pigment[0] = al_map_rgb(230, 179, 126);
+    s_pigment[1] = al_map_rgb(184, 128, 69);
+    s_pigment[2] = al_map_rgb(122, 85, 46);
+    s_pigment[3] = al_map_rgb(82, 57, 31);
+
+    h_pigment[0] = al_map_rgb(46, 24, 0);
+    h_pigment[1] = al_map_rgb(77, 40, 0);
+    h_pigment[2] = al_map_rgb(13, 7, 0);
+    h_pigment[3] = al_map_rgb(191, 156, 48);
+    h_pigment[4] = al_map_rgb(191, 64, 0);
+    h_pigment[5] = al_map_rgb(230, 230, 230);
+}
+
 void draw_bitmap(ALLEGRO_BITMAP* bmp, float x, float y, int flags) {
     if (bmp == NULL) { cout << "ERROR: Tried to draw NULL bitmap.\n"; }
     else if (get_paused()) { al_draw_tinted_bitmap(bmp, dark, x, y, flags); }
@@ -354,11 +375,11 @@ class Plant: public Item {
  */
 class Entity: public Object {
     private:
-        int frame;
         float hunger;
         float thirst;
         float fatigue;
     public:
+        int frame;
         Entity(int d) : Object(d), frame(0) {}
         ALLEGRO_BITMAP* get_sprite();
         void update();
@@ -371,6 +392,9 @@ class Entity: public Object {
  */
 class Humanoid: public Entity {
     protected:
+        int s_color;
+        int h_color;
+        int h_type;
         /**
          * LIST OF EQUIP AREAS
          *  0   Head
@@ -386,7 +410,8 @@ class Humanoid: public Entity {
          */
         Item* equip[10];
     public:
-        Humanoid(int d) : Entity(d) {}
+        Humanoid(int d, int sc, int hc, int ht) : Entity(d), s_color(sc), h_color(hc), h_type(ht) {}
+        void draw();
         void equip_to(Item*, int);
 };
 
@@ -395,7 +420,7 @@ class Humanoid: public Entity {
  */
 class Player: public Humanoid {
     public:
-        Player() : Humanoid(4) {}
+        Player(int sc, int hc, int ht) : Humanoid(1, sc, hc, ht) {}
         void update_player(ALLEGRO_EVENT);
 };
 
@@ -415,7 +440,8 @@ class Person: public NPC, public Humanoid {
         int interests;
         int personality;
     public:
-        Person(int d) : NPC(d), Humanoid(d) {}
+        // TODO fix next line
+        Person(int d) : NPC(d), Humanoid(d, 2, 1, 69) {}
 };
 
 /**
@@ -532,6 +558,7 @@ void Object::draw() {
 }
 
 void Object::update() {
+    cout << "[GAME] Object::update() called.\n";
     pos += mov;
     if (!loc->check_collisions(this)) {
         pos -= mov;
@@ -545,6 +572,7 @@ void Object::update() {
             if (!loc->check_collisions(this)) { pos -= mov; }
         }
     }
+    cout << "[GAME] Checking for collisions complete.\n";
     if (mov.x != 0 || mov.y != 0) {
         dir = get_angle_of_vector(&mov);
     }
@@ -711,6 +739,7 @@ int Plant::harvest() {
 
 void Entity::update() {
     Object::update();
+    cout << "[GAME] Object::update() complete.\n";
     if (mov.x != 0 || mov.y != 0) { frame = (frame+1)%60; }
     else { frame = 0; }
 
@@ -725,6 +754,47 @@ ALLEGRO_BITMAP* Entity::get_sprite() {
 ALLEGRO_USTR* Entity::get_description() {
     // TODO fix later
     return get_desc_by_id(id);
+}
+
+void Humanoid::draw() {
+    cout << "[GAME] Humanoid draw() called.\n";
+    int d = rel_direction(dir);
+    d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
+    int i = ((frame/5)%4)+(4*d);
+
+    Point* draw_at = convert_to_screen_coordinates(pos-*center);
+    if (get_within_stage(get_image_asset(i), draw_at->x, draw_at->y)) {
+        ALLEGRO_BITMAP* bmp1 = get_image_asset(sprite+i);
+        ALLEGRO_BITMAP* bmp2 = get_image_asset(sprite+i+20);
+        ALLEGRO_BITMAP *bmp3, *bmp4;
+        if (h_type >= 0) {
+            bmp3 = get_image_asset(h_type+i);
+            bmp4 = get_image_asset(h_type+i+20);
+        }
+        draw_at->set_to(draw_at->x-(al_get_bitmap_width(bmp1)/2), draw_at->y-al_get_bitmap_height(bmp1));
+        int flip = get_sprite_flipped();
+        if (get_flag(1)) {
+            unsigned char *r, *g, *b;
+            al_unmap_rgb(s_pigment[s_color], r, g, b);
+            draw_tinted_bitmap(bmp1, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+            draw_tinted_bitmap(bmp2, invisible, draw_at->x, draw_at->y, flip);
+            // draw clothing
+            if (h_type >= 0) {
+                al_unmap_rgb(h_pigment[h_color], r, g, b);
+                draw_tinted_bitmap(bmp3, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+                draw_tinted_bitmap(bmp4, invisible, draw_at->x, draw_at->y, flip);
+            }
+        } else {
+            draw_tinted_bitmap(bmp1, s_pigment[s_color], draw_at->x, draw_at->y, flip);
+            draw_bitmap(bmp2, draw_at->x, draw_at->y, flip);
+            // draw clothing
+            if (h_type >= 0) {
+                draw_tinted_bitmap(bmp3, h_pigment[h_color], draw_at->x, draw_at->y, flip);
+                draw_bitmap(bmp4, draw_at->x, draw_at->y, flip);
+            }
+        }
+    }
+    delete draw_at;
 }
 
 void Humanoid::equip_to(Item* item, int a) {
@@ -875,6 +945,7 @@ void Area::resort_objects() {
  * Returns false if collision detected, true if none
  */
 bool Area::check_collisions(Object* o) {
+    // SEGMENTATION FAULT occurs in next line. Why? WHO THE FUCK KNOWS
     for (int i = 0; i < num_objects; i++) {
         if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
             if (o != objects[i]) { return false; }
@@ -932,7 +1003,11 @@ void draw_at_center() {
 
     // DRAW THE OBJECTS IN THE AREA
     for (int i = 0; i < main_area->num_objects; i++) {
-        main_area->objects[i]->draw();
+        if (Humanoid* hmnd = dynamic_cast<Humanoid*>(main_area->objects[i])) {
+            hmnd->draw();
+        } else {
+            main_area->objects[i]->draw();
+        }
     }
 
     // cleanup
@@ -1305,14 +1380,10 @@ Object* create_object(int id) {
     }
 }
 
-int run_game(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE* events) {
-    dark = al_map_rgb(128, 128, 128);
-    transparent = al_map_rgba(128, 128, 128, 128);
-    invisible = al_map_rgba(64, 64, 64, 64);
-
+int run_game(ALLEGRO_EVENT_QUEUE* events) {
     cout << "[GAME] Game begun.\n";
     main_area = new Area();
-    pc = new Player();
+    // pc = new Player();
     center = pc->get_position();
     main_area->add_object(pc);
 
@@ -1331,6 +1402,7 @@ int run_game(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE* events) {
             // do something
             update = get_any_key_down();
         } else {
+            cout << "[GAME] Something happened.\n";
             update = true;
             switch (update_from_event(e)) {
                 case 1: // PAUSE key
@@ -1370,10 +1442,15 @@ int run_game(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE* events) {
         }
         main_area->resort_objects();
         if (update) {
+            cout << "[GAME] Updating...\n";
             update = false;
+            cout << "[GAME] Updating player.\n";
             if (!get_paused()) { pc->update_player(e); }
+            cout << "[GAME] Player updated.\n";
             al_clear_to_color(dark);
+            cout << "[GAME] Drawing to center.\n";
             draw_at_center();
+            cout << "[GAME] Drawing windows.\n";
             draw_windows();
             if (get_command_line()) {
                 al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 10, 10, 0, get_input(true));
@@ -1394,4 +1471,102 @@ int run_game(ALLEGRO_DISPLAY* display, ALLEGRO_EVENT_QUEUE* events) {
         }
     }
     return 1;
+}
+
+int new_game(ALLEGRO_EVENT_QUEUE* events) {
+    populate_colors();
+
+    bool text_focus = false;
+    int hair_color = 1;
+    int hair_style = 0;
+    int skin_color = 2;
+    int portrait_type = 0;
+
+    int dir = SOUTHWEST;
+    int frame = 0;
+
+    bool update = true;
+    while (true) {
+        ALLEGRO_EVENT e;
+        al_wait_for_event(events, &e);
+        if (e.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+            delete[] windows;
+            return 0;
+        } else if (e.type == ALLEGRO_EVENT_TIMER) {
+            frame = (frame+1)%40;
+            if (frame%10 == 0) { update = true; }
+        } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+            if (e.mouse.y >= 282 && e.mouse.y <= 300) {
+                if (e.mouse.x >= 229 && e.mouse.x <= 289) { // CONFIRM button
+                    break;
+                } else if (e.mouse.x >= 349 && e.mouse.x <= 409) { // CANCEL button
+                    return 1;
+                }
+            } else if (e.mouse.x >= 263 && e.mouse.x <= 269) {
+                if (e.mouse.y >= 151 && e.mouse.y <= 159) { // LEFT for HAIR STYLE
+                    hair_style = (hair_style+1)%2;
+                } else if (e.mouse.y >= 167 && e.mouse.y <= 175) { // LEFT for HAIR COLOR
+                    hair_color = (hair_color+5)%6;
+                } else if (e.mouse.y >= 183 && e.mouse.y <= 191) { // LEFT for SKIN COLOR
+                    skin_color = (skin_color+3)%4;
+                }
+            } else if (e.mouse.x >= 335 && e.mouse.x <= 341) {
+                if (e.mouse.y >= 151 && e.mouse.y <= 159) { // RIGHT for HAIR STYLE
+                    hair_style = (hair_style+1)%2;
+                } else if (e.mouse.y >= 167 && e.mouse.y <= 175) { // RIGHT for HAIR COLOR
+                    hair_color = (hair_color+1)%6;
+                } else if (e.mouse.y >= 183 && e.mouse.y <= 191) { // RIGHT for SKIN COLOR
+                    skin_color = (skin_color+1)%4;
+                }
+            } else if (e.mouse.y >= 188 && e.mouse.y <= 197) {
+                if (e.mouse.x >= 202 && e.mouse.x <= 213) { // ROTATE CLOCKWISE
+                    dir = (dir+7)%8;
+                } else if (e.mouse.x >= 232 && e.mouse.x <= 243) { // ROTATE COUNTERCLOCKWISE
+                    dir = (dir+1)%8;
+                }
+            } else if (e.mouse.y >= 167 && e.mouse.y <= 175) {
+                if (e.mouse.x >= 376 && e.mouse.x <= 382) { // LEFT for PORTRAIT
+                    portrait_type = (portrait_type+1)%2;
+                } else if (e.mouse.x >= 428 && e.mouse.x <= 434) { // RIGHT for PORTRAIT
+                    portrait_type = (portrait_type+1)%2;
+                }
+            }
+            if (e.mouse.x >= 191 && e.mouse.x <= 451 && e.mouse.y >= 112 && e.mouse.y <= 131) {
+                text_focus = true;
+                // TODO calc where to place cursor
+            } else {
+                text_focus = false;
+            }
+        }
+
+        if (update) {
+            al_clear_to_color(al_map_rgb(179, 152, 125));
+            al_draw_bitmap(get_image_asset(1), 140, 80, 0);
+
+            //al_draw_bitmap(get_image_asset(8), 200, 200, 0);
+            int d = dir;
+            d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
+            al_draw_tinted_bitmap(get_image_asset(9+(frame/10)+(4*d)), s_pigment[skin_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+
+            al_draw_bitmap(get_image_asset(149+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(129+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+
+            al_draw_bitmap(get_image_asset(29+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_tinted_bitmap(get_image_asset(49+(40*hair_style)+(frame/10)+(4*d)), h_pigment[hair_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(69+(40*hair_style)+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+
+            al_flip_display();
+            update = false;
+        }
+    }
+
+    pc = new Player(skin_color, hair_color, 49+(40*hair_style));
+    return run_game(events);
+}
+
+int load_game(ALLEGRO_EVENT_QUEUE* events) {
+    populate_colors();
+
+    pc = new Player(2, 1, 69);
+    return run_game(events);
 }

@@ -15,7 +15,7 @@ int get_FPS();
 int get_screen_width();
 int get_screen_height();
 
-void run_menu(ALLEGRO_DISPLAY*, ALLEGRO_EVENT_QUEUE*);
+void run_menu(ALLEGRO_EVENT_QUEUE*);
 
 int main() {
 
@@ -80,7 +80,7 @@ int main() {
 
     al_start_timer(timer);
 
-    run_menu(display, events);
+    run_menu(events);
 
     al_destroy_display(display);
     al_destroy_timer(timer);

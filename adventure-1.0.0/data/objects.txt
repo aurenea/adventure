@@ -6,5 +6,4 @@
 10 2 3 "barrel" "A wooden barrel. You can use it to store other items." 12 6
 5 1 4 "grapes" "A bunch of tasty-looking grapes. You can eat these when you get hungry."
 24 3 5 "wheat stalk" "A stalk of wheat. You can harvest wheat from it with a blade of some sort." 2
-1 4 7 "person" "Just some random weirdo."
-2 4 27 "person" "Just some random weirdo."
+1 4 9 "person" "Just some random weirdo."
