@@ -1,4 +1,6 @@
 #include <iostream>
+#include <stdlib.h>
+#include <time.h>
 #include <cmath>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
@@ -67,7 +69,7 @@ ALLEGRO_COLOR sky;
 ALLEGRO_COLOR s_pigment[4];
 ALLEGRO_COLOR h_pigment[6];
 
-void populate_colors() {
+void init_game() {
     dark = al_map_rgb(128, 128, 128);
     transparent = al_map_rgba(128, 128, 128, 128);
     invisible = al_map_rgba(64, 64, 64, 64);
@@ -83,6 +85,8 @@ void populate_colors() {
     h_pigment[3] = al_map_rgb(191, 156, 48);
     h_pigment[4] = al_map_rgb(191, 64, 0);
     h_pigment[5] = al_map_rgb(230, 230, 230);
+
+    srand(time(NULL));
 }
 
 void draw_bitmap(ALLEGRO_BITMAP* bmp, float x, float y, int flags) {
@@ -164,7 +168,7 @@ const int SOUTHEAST = 7;
 int view_angle = SOUTHWEST;
 
 int rel_direction(int dir) {
-    return (dir-view_angle+2)%8;
+    return (dir-view_angle+10)%8;
 }
 
 Point* translate(Point* point, int angle, int distance = 1) {
@@ -419,8 +423,10 @@ class Humanoid: public Entity {
  * The player character
  */
 class Player: public Humanoid {
+    private:
+        int identifier;
     public:
-        Player(int sc, int hc, int ht) : Humanoid(1, sc, hc, ht) {}
+        Player(int i, int sc, int hc, int ht) : Humanoid(1, sc, hc, ht) {}
         void update_player(ALLEGRO_EVENT);
 };
 
@@ -558,7 +564,6 @@ void Object::draw() {
 }
 
 void Object::update() {
-    cout << "[GAME] Object::update() called.\n";
     pos += mov;
     if (!loc->check_collisions(this)) {
         pos -= mov;
@@ -572,7 +577,6 @@ void Object::update() {
             if (!loc->check_collisions(this)) { pos -= mov; }
         }
     }
-    cout << "[GAME] Checking for collisions complete.\n";
     if (mov.x != 0 || mov.y != 0) {
         dir = get_angle_of_vector(&mov);
     }
@@ -739,7 +743,6 @@ int Plant::harvest() {
 
 void Entity::update() {
     Object::update();
-    cout << "[GAME] Object::update() complete.\n";
     if (mov.x != 0 || mov.y != 0) { frame = (frame+1)%60; }
     else { frame = 0; }
 
@@ -757,15 +760,14 @@ ALLEGRO_USTR* Entity::get_description() {
 }
 
 void Humanoid::draw() {
-    cout << "[GAME] Humanoid draw() called.\n";
     int d = rel_direction(dir);
-    d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
+    d = ((d <= 1 || d >= 7) ? (8-((d+6)%8)) : (d-2));
     int i = ((frame/5)%4)+(4*d);
 
     Point* draw_at = convert_to_screen_coordinates(pos-*center);
     if (get_within_stage(get_image_asset(i), draw_at->x, draw_at->y)) {
-        ALLEGRO_BITMAP* bmp1 = get_image_asset(sprite+i);
-        ALLEGRO_BITMAP* bmp2 = get_image_asset(sprite+i+20);
+        ALLEGRO_BITMAP *bmp1 = get_image_asset(sprite+i);
+        ALLEGRO_BITMAP *bmp2 = get_image_asset(sprite+i+20);
         ALLEGRO_BITMAP *bmp3, *bmp4;
         if (h_type >= 0) {
             bmp3 = get_image_asset(h_type+i);
@@ -840,7 +842,6 @@ Area::Area() {
         for (int j = 0; j < 64; j++) { tiles[i][j] = (i+j)%3; }
     }
     num_objects = 0;
-    cout << "[GAME] " << &num_objects << "\n";
 }
 
 ALLEGRO_BITMAP* Area::get_tile(int x, int y) {
@@ -948,8 +949,6 @@ void Area::resort_objects() {
  * Returns false if collision detected, true if none
  */
 bool Area::check_collisions(Object* o) {
-    // SEGMENTATION FAULT occurs in next line. Why? WHO THE FUCK KNOWS
-    cout << "[GAME] " << &num_objects << "\n";
     for (int i = 0; i < num_objects; i++) {
         if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
             if (o != objects[i]) { return false; }
@@ -1406,7 +1405,6 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
             // do something
             update = get_any_key_down();
         } else {
-            cout << "[GAME] Something happened.\n";
             update = true;
             switch (update_from_event(e)) {
                 case 1: // PAUSE key
@@ -1446,15 +1444,10 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
         }
         main_area->resort_objects();
         if (update) {
-            cout << "[GAME] Updating...\n";
             update = false;
-            cout << "[GAME] Updating player.\n";
             if (!get_paused()) { pc->update_player(e); }
-            cout << "[GAME] Player updated.\n";
             al_clear_to_color(dark);
-            cout << "[GAME] Drawing to center.\n";
             draw_at_center();
-            cout << "[GAME] Drawing windows.\n";
             draw_windows();
             if (get_command_line()) {
                 al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 10, 10, 0, get_input(true));
@@ -1478,9 +1471,8 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
 }
 
 int new_game(ALLEGRO_EVENT_QUEUE* events) {
-    populate_colors();
+    init_game();
 
-    bool text_focus = false;
     int hair_color = 1;
     int hair_style = 0;
     int skin_color = 2;
@@ -1536,10 +1528,10 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
                 }
             }
             if (e.mouse.x >= 191 && e.mouse.x <= 451 && e.mouse.y >= 112 && e.mouse.y <= 131) {
-                text_focus = true;
+                set_input(true);
                 // TODO calc where to place cursor
             } else {
-                text_focus = false;
+                set_input(false);
             }
         }
 
@@ -1564,13 +1556,13 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
         }
     }
 
-    pc = new Player(skin_color, hair_color, 49+(40*hair_style));
+    pc = new Player(rand() % 100, skin_color, hair_color, 49+(40*hair_style));
     return run_game(events);
 }
 
 int load_game(ALLEGRO_EVENT_QUEUE* events) {
-    populate_colors();
+    init_game();
 
-    pc = new Player(2, 1, 69);
+    pc = new Player(rand() % 100, 2, 1, 69);
     return run_game(events);
 }

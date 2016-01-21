@@ -83,8 +83,10 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1453257048 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
+1453308109 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
 	<iostream>
+	<stdlib.h>
+	<time.h>
 	<cmath>
 	<allegro5/allegro.h>
 	<allegro5/allegro_font.h>
