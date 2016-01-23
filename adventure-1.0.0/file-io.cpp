@@ -125,6 +125,7 @@ void load_objects() {
                         additional = 2;
                         break;
                     case 3:
+                    case 4:
                         additional = 1;
                         break;
                 }
@@ -135,11 +136,13 @@ void load_objects() {
                         line.copy(s, line.length()-index, index);
                         //other_by_id[id][i] = atoi(s);
                         oref->other[i] = atoi(s);
+                        cout << "[IO] other[" << i << "] = " << oref->other[i] << "\n";
                         memset(&s[0], 0, sizeof(s));
                     } else {
                         line.copy(s, line.find(' ', index)-index, index);
                         //other_by_id[id][i] = atoi(s);
                         oref->other[i] = atoi(s);
+                        cout << "[IO] other[" << i << "] = " << oref->other[i] << "\n";
                         memset(&s[0], 0, sizeof(s));
                         index = line.find(' ', index)+1;
                     }

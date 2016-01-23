@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <time.h>
 #include <cmath>
@@ -61,6 +62,7 @@ void toggle_hack_mover() {
     mode ^= 4;
 }
 
+ALLEGRO_COLOR black;
 ALLEGRO_COLOR dark;
 ALLEGRO_COLOR transparent;
 ALLEGRO_COLOR invisible;
@@ -70,6 +72,7 @@ ALLEGRO_COLOR s_pigment[4];
 ALLEGRO_COLOR h_pigment[6];
 
 void init_game() {
+    black = al_map_rgb(0, 0, 0);
     dark = al_map_rgb(128, 128, 128);
     transparent = al_map_rgba(128, 128, 128, 128);
     invisible = al_map_rgba(64, 64, 64, 64);
@@ -90,13 +93,13 @@ void init_game() {
 }
 
 void draw_bitmap(ALLEGRO_BITMAP* bmp, float x, float y, int flags) {
-    if (bmp == NULL) { cout << "ERROR: Tried to draw NULL bitmap.\n"; }
+    if (bmp == NULL) { return; cout << "ERROR: Tried to draw NULL bitmap.\n"; }
     else if (get_paused()) { al_draw_tinted_bitmap(bmp, dark, x, y, flags); }
     else { al_draw_bitmap(bmp, x, y, flags); }
 }
 
 void draw_tinted_bitmap(ALLEGRO_BITMAP* bmp, ALLEGRO_COLOR color, float x, float y, int flags) {
-    if (bmp == NULL) { cout << "ERROR: Tried to draw NULL bitmap.\n"; }
+    if (bmp == NULL) { return; cout << "ERROR: Tried to draw NULL bitmap.\n"; }
     else { al_draw_tinted_bitmap(bmp, color, x, y, flags); }
 }
 
@@ -346,6 +349,14 @@ class ItemContainer: public Item {
         int on_click();
 };
 
+class Equipment: public Item {
+    friend class Humanoid;
+    private:
+        int e_area;
+    public:
+        Equipment(int);
+};
+
 class Weapon: public Item {
     public:
         Weapon(int);
@@ -406,17 +417,15 @@ class Humanoid: public Entity {
          *  2   Chest
          *  3   Back
          *  4   Arms
-         *  5   R. Hand
-         *  6   L. Hand
-         *  7   Waist
-         *  8   Legs
-         *  9   Feet
+         *  5   Waist
+         *  6   Legs
+         *  7   Feet
          */
-        Item* equip[10];
+        Equipment* equip[8];
     public:
-        Humanoid(int d, int sc, int hc, int ht) : Entity(d), s_color(sc), h_color(hc), h_type(ht) {}
+        Humanoid(int, int, int, int);
         void draw();
-        void equip_to(Item*, int);
+        Equipment* equip_item(Equipment*);
 };
 
 /**
@@ -455,12 +464,14 @@ class Person: public NPC, public Humanoid {
  */
 class Area {
     protected:
+        int id;
         int tiles[64][64];
     public:
         int num_objects;
         Object** objects;
-        Area();
+        Area(int);
         ALLEGRO_BITMAP* get_tile(int, int);
+        void load_area();
         void add_object(Object*);
         void remove_object(Object*);
         void resort_objects();
@@ -722,6 +733,10 @@ void ItemContainer::remove_item(Item* item) {
     items = temp;
 }
 
+Equipment::Equipment(int d) : Item(d) {
+    e_area = get_params_by_id(id)[0];
+}
+
 Weapon::Weapon(int d) : Item(d) {
 
 }
@@ -759,6 +774,12 @@ ALLEGRO_USTR* Entity::get_description() {
     return get_desc_by_id(id);
 }
 
+Humanoid::Humanoid(int d, int sc, int hc, int ht) : Entity(d), s_color(sc), h_color(hc), h_type(ht) {
+    for (int i = 0; i < 8; i++) {
+        equip[i] = NULL;
+    }
+}
+
 void Humanoid::draw() {
     int d = rel_direction(dir);
     d = ((d <= 1 || d >= 7) ? (8-((d+6)%8)) : (d-2));
@@ -766,41 +787,70 @@ void Humanoid::draw() {
 
     Point* draw_at = convert_to_screen_coordinates(pos-*center);
     if (get_within_stage(get_image_asset(i), draw_at->x, draw_at->y)) {
-        ALLEGRO_BITMAP *bmp1 = get_image_asset(sprite+i);
-        ALLEGRO_BITMAP *bmp2 = get_image_asset(sprite+i+20);
-        ALLEGRO_BITMAP *bmp3, *bmp4;
-        if (h_type >= 0) {
-            bmp3 = get_image_asset(h_type+i);
-            bmp4 = get_image_asset(h_type+i+20);
-        }
+        // sprite for body
+        ALLEGRO_BITMAP* bmp1 = get_image_asset(sprite+i);
+        // sprite for shadowing
+        ALLEGRO_BITMAP* bmp2 = get_image_asset(sprite+i+20);
         draw_at->set_to(draw_at->x-(al_get_bitmap_width(bmp1)/2), draw_at->y-al_get_bitmap_height(bmp1));
         int flip = get_sprite_flipped();
         if (get_flag(1)) {
+            // draw body
             unsigned char *r, *g, *b;
             al_unmap_rgb(s_pigment[s_color], r, g, b);
             draw_tinted_bitmap(bmp1, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+            // draw clothing (except head)
+            for (int a = 7; a > 0; a--) {
+                if (equip[a] != NULL) {
+                    draw_tinted_bitmap(get_image_asset(equip[a]->sprite+i), invisible, draw_at->x, draw_at->y, flip);
+                }
+            }
+            // draw shadowing
             draw_tinted_bitmap(bmp2, invisible, draw_at->x, draw_at->y, flip);
-            // draw clothing
+            // draw hair (if they have any)
             if (h_type >= 0) {
                 al_unmap_rgb(h_pigment[h_color], r, g, b);
-                draw_tinted_bitmap(bmp3, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
-                draw_tinted_bitmap(bmp4, invisible, draw_at->x, draw_at->y, flip);
+                draw_tinted_bitmap(get_image_asset(h_type+i), al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+                draw_tinted_bitmap(get_image_asset(h_type+i+20), invisible, draw_at->x, draw_at->y, flip);
+            }
+            // draw head equipment
+            if (equip[0] != NULL) {
+                draw_tinted_bitmap(get_image_asset(equip[0]->sprite+i), invisible, draw_at->x, draw_at->y, flip);
             }
         } else {
+            // draw body
             draw_tinted_bitmap(bmp1, s_pigment[s_color], draw_at->x, draw_at->y, flip);
-            draw_bitmap(bmp2, draw_at->x, draw_at->y, flip);
             // draw clothing
+            for (int a = 7; a > 0; a--) {
+                if (equip[a] != NULL) {
+                    draw_bitmap(get_image_asset(equip[a]->sprite+i), draw_at->x, draw_at->y, flip);
+                }
+            }
+            // draw shadowing
+            draw_bitmap(bmp2, draw_at->x, draw_at->y, flip);
+            // draw hair (if they have any)
             if (h_type >= 0) {
-                draw_tinted_bitmap(bmp3, h_pigment[h_color], draw_at->x, draw_at->y, flip);
-                draw_bitmap(bmp4, draw_at->x, draw_at->y, flip);
+                draw_tinted_bitmap(get_image_asset(h_type+i), h_pigment[h_color], draw_at->x, draw_at->y, flip);
+                draw_bitmap(get_image_asset(h_type+i+20), draw_at->x, draw_at->y, flip);
+            }
+            // draw head equipment
+            if (equip[0] != NULL) {
+                draw_bitmap(get_image_asset(equip[0]->sprite+i), draw_at->x, draw_at->y, flip);
             }
         }
     }
     delete draw_at;
 }
 
-void Humanoid::equip_to(Item* item, int a) {
-    if (a >= 10 || a < 0) { return; }
+/**
+ * Equips the given item, returns what was in the equip slot before.
+ */
+Equipment* Humanoid::equip_item(Equipment* eq) {
+    cout << "[GAME] Equip called: " << eq->e_area << "\n";
+    Equipment* former = equip[eq->e_area];
+    equip[eq->e_area] = eq;
+    return former;
+
+    /* if (a >= 10 || a < 0) { return; }
     if (a == 3) {
         if (equip[a] != NULL) {
             equip[a]->set_position(translate(&pos, (view_angle+4)%8));
@@ -816,7 +866,7 @@ void Humanoid::equip_to(Item* item, int a) {
             }
         }
     }
-    equip[a] = item;
+    equip[a] = item; */
 }
 
 void Player::update_player(ALLEGRO_EVENT e) {
@@ -836,10 +886,11 @@ void Player::update_player(ALLEGRO_EVENT e) {
     update();
 }
 
-Area::Area() {
+Area::Area(int identifier) {
+    id = identifier;
     // load the area here
     for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) { tiles[i][j] = (i+j)%3; }
+        for (int j = 0; j < 64; j++) { tiles[i][j] = 0; }
     }
     num_objects = 0;
 }
@@ -850,8 +901,91 @@ ALLEGRO_BITMAP* Area::get_tile(int x, int y) {
     else if (y < 0) { return borders[1]->get_tile(x, y+64); }
     else if (x < 0) { return borders[2]->get_tile(x+64, y); }
     else if (y >= 64) { return borders[3]->get_tile(x, y-64); }*/
-    if (x < 0 || x >= 64 || y < 0 || y >= 64) { return NULL; }
-    else { return get_tile_asset(tiles[x][y]); }
+    if (x < 0 || x >= 64 || y < 0 || y >= 64 || tiles[x][y] == 0) { return NULL; }
+    else { return get_tile_asset(tiles[x][y]-1); }
+}
+
+void Area::load_area() {
+    cout << "Loading area...\n";
+    string line;
+    char* s = new char[8];
+    memset(&s[0], 0, sizeof(s));
+    itoa(id, s, 10);
+    char* filename = new char[23];
+    strcpy(filename, "data/area/area");
+    filename[14] = s[0];
+    if (s[1] != 0) {
+        filename[15] = s[1];
+        if (s[2] >= '0' && s[2] <= '9') { filename[16] = s[2]; filename[17] = '\0'; }
+        else { filename[16] = '\0'; }
+    } else { filename[15] = '\0'; }
+    strcat(filename, ".txt");
+    cout << "Filename: " << filename << "\n";
+    ifstream inpt(filename);
+    if (inpt.is_open()) {
+        memset(&s[0], 0, sizeof(s));
+        while (getline(inpt, line)) {
+            if (line[0] == '-') {
+                if (line[2] == 'd') { // default
+                    int index = line.find(' ', 2)+1;
+                    line.copy(s, line.find(' ', index)-index, index);
+                    int def = atoi(s);
+                    for (int i = 0; i < 64; i++) {
+                        for (int j = 0; j < 64; j++) {
+                            if (tiles[i][j] == 0) { tiles[i][j] = def; }
+                        }
+                    }
+                } else {
+                    int index = line.find(' ', 2)+1;
+                    line.copy(s, index-3, 2);
+                    int xmin = atoi(s);
+                    memset(&s[0], 0, sizeof(s));
+
+                    line.copy(s, line.find(' ', index)-index, index);
+                    int ymin = atoi(s);
+                    memset(&s[0], 0, sizeof(s));
+                    index = line.find(' ', index)+1;
+
+                    line.copy(s, line.find(' ', index)-index, index);
+                    int xmax = atoi(s);
+                    memset(&s[0], 0, sizeof(s));
+                    index = line.find(' ', index)+1;
+
+                    line.copy(s, line.find(' ', index)-index, index);
+                    int ymax = atoi(s);
+                    memset(&s[0], 0, sizeof(s));
+                    index = line.find(' ', index)+1;
+
+                    line.copy(s, line.find(' ', index)-index, index);
+                    int q = atoi(s);
+                    memset(&s[0], 0, sizeof(s));
+
+                    for (int i = xmin; i <= xmax; i++) {
+                        for (int j = ymin; j <= ymax; j++) {
+                            tiles[i][j] = q;
+                        }
+                    }
+                }
+            } else {
+                int index = line.find(' ')+1;
+                line.copy(s, index-1);
+                int identifier = atoi(s);
+                memset(&s[0], 0, sizeof(s));
+                Object* new_object = create_object(identifier);
+
+                line.copy(s, line.find(' ', index)-index, index);
+                int xpos = atoi(s);
+                memset(&s[0], 0, sizeof(s));
+                index = line.find(' ', index)+1;
+
+                line.copy(s, line.find(' ', index)-index, index);
+                int ypos = atoi(s);
+                memset(&s[0], 0, sizeof(s));
+                new_object->set_position(xpos, ypos);
+                add_object(new_object);
+            }
+        }
+    }
 }
 
 /**
@@ -957,7 +1091,8 @@ bool Area::check_collisions(Object* o) {
     return true;
 }
 
-OutdoorArea::OutdoorArea(int x, int y) : Area() {
+OutdoorArea::OutdoorArea(int x, int y) : Area(x+y) {
+    // fix super() later
     pos.set_to(x, y);
 }
 
@@ -966,6 +1101,8 @@ Area* OutdoorArea::get_border(int dir) {
 }
 
 void draw_at_center() {
+    al_clear_to_color(black);
+
     // DRAW THE TILES OF THE TERRAIN
     Point* indices = new Point(center->x/32, center->y/32);
     Point* offset = new Point(center->x%32, center->y%32);
@@ -1017,9 +1154,6 @@ void draw_at_center() {
     delete indices;
     delete offset;
     delete basis;
-
-    // remove this later
-    al_put_pixel(320, 200, al_map_rgb(0, 0, 0));
 }
 
 Object* dragging = NULL;
@@ -1089,7 +1223,7 @@ class ContainerWindow: public Window {
     public:
         ContainerWindow(ItemContainer* ic) : cont(ic) { cout << "New ContainerWindow."; }
         int update_window(ALLEGRO_EVENT);
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(1); }
+        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1104,7 +1238,7 @@ void ContainerWindow::draw() {
         for (int j = 0; j < cont->height; j++) {
             Item* item = cont->get_item(i, j);
             if (item == NULL) {
-                draw_bitmap(get_image_asset(2), x+xd+(10*i), y+yd+(10*j), 0);
+                draw_bitmap(get_image_asset(3), x+xd+(10*i), y+yd+(10*j), 0);
             } else {
                 if (item->get_position()->x == i && item->get_position()->y == j) {
                     draw_bitmap(item->get_sprite(), x+xd+(10*i), y+yd+(10*j), 0);
@@ -1121,7 +1255,7 @@ class DescriptionWindow: public Window {
     public:
         DescriptionWindow(Object* obj) : object(obj) { text = object->get_description(); }
         int update_window(ALLEGRO_EVENT e) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(1); }
+        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1139,7 +1273,7 @@ class ConversationWindow: public Window {
     public:
         ConversationWindow(Entity* e) : ent(e) { x = y = 0; }
         int update_window(ALLEGRO_EVENT) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(1); }
+        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1156,7 +1290,7 @@ class EquipmentWindow: public Window {
     public:
         EquipmentWindow(Humanoid* h) : person(h) {}
         int update_window(ALLEGRO_EVENT) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(1); }
+        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1377,6 +1511,8 @@ Object* create_object(int id) {
         case 3:
             return new Plant(id);
         case 4:
+            return new Equipment(id);
+        case 5:
             return new Entity(id);
         default:
             return new Item(0);
@@ -1385,7 +1521,8 @@ Object* create_object(int id) {
 
 int run_game(ALLEGRO_EVENT_QUEUE* events) {
     cout << "[GAME] Game begun.\n";
-    main_area = new Area();
+    main_area = new Area(1);
+    main_area->load_area();
     // pc = new Player();
     center = pc->get_position();
     main_area->add_object(pc);
@@ -1446,7 +1583,6 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
         if (update) {
             update = false;
             if (!get_paused()) { pc->update_player(e); }
-            al_clear_to_color(dark);
             draw_at_center();
             draw_windows();
             if (get_command_line()) {
@@ -1557,6 +1693,10 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
     }
 
     pc = new Player(rand() % 100, skin_color, hair_color, 49+(40*hair_style));
+    cout << "[GAME] Equipping player...\n";
+    pc->equip_item(dynamic_cast<Equipment*>(create_object(7)));
+    pc->equip_item(dynamic_cast<Equipment*>(create_object(11)));
+
     return run_game(events);
 }
 

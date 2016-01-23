@@ -47,7 +47,7 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1453256751 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\file-io.cpp
+1453391956 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\file-io.cpp
 	<cstdlib>
 	<iostream>
 	<fstream>
@@ -83,8 +83,9 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1453308109 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
+1453569566 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
 	<iostream>
+	<fstream>
 	<stdlib.h>
 	<time.h>
 	<cmath>
