@@ -906,7 +906,6 @@ ALLEGRO_BITMAP* Area::get_tile(int x, int y) {
 }
 
 void Area::load_area() {
-    cout << "Loading area...\n";
     string line;
     char* s = new char[8];
     memset(&s[0], 0, sizeof(s));
@@ -920,7 +919,6 @@ void Area::load_area() {
         else { filename[16] = '\0'; }
     } else { filename[15] = '\0'; }
     strcat(filename, ".txt");
-    cout << "Filename: " << filename << "\n";
     ifstream inpt(filename);
     if (inpt.is_open()) {
         memset(&s[0], 0, sizeof(s));
@@ -985,7 +983,7 @@ void Area::load_area() {
                 add_object(new_object);
             }
         }
-    }
+    } else { cout << "[GAME] Failed to load file \"" << filename << "\".\n"; }
 }
 
 /**
@@ -1521,10 +1519,10 @@ Object* create_object(int id) {
 
 int run_game(ALLEGRO_EVENT_QUEUE* events) {
     cout << "[GAME] Game begun.\n";
+    center = pc->get_position();
     main_area = new Area(1);
     main_area->load_area();
     // pc = new Player();
-    center = pc->get_position();
     main_area->add_object(pc);
 
     cout << "[GAME] Now drawing...\n";
