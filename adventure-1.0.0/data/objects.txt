@@ -3,10 +3,13 @@
 // 2 ItemContainer:     width       height      \0
 // 3 Plant:             harvest     \0
 // 4 Equipment:         equip area  \0
-// 5 Entity:            \0
-10 2 4 "barrel" "A wooden barrel. You can use it to store other items." 12 6
-5 1 5 "grapes" "A bunch of tasty-looking grapes. You can eat these when you get hungry."
-24 3 6 "wheat stalk" "A stalk of wheat. You can harvest wheat from it with a blade of some sort." 2
-1 5 9 "person" "Just some random weirdo."
-7 4 129 "shirt" "It's something you put on your body." 2
-11 4 149 "pants" "Something to cover the junk in your trunk." 6
+// 5 Key:               \0
+// 6 Openable:          open_sprite \0
+// 7 Entity:            \0
+10 2 1 "barrel" "A wooden barrel. You can use it to store other items." 12 6
+5 1 2 "grapes" "A bunch of tasty-looking grapes. You can eat these when you get hungry."
+17 5 5 "key" "A iron key. You could open some door with it."
+24 3 3 "wheat stalk" "A stalk of wheat. You can harvest wheat from it with a blade of some sort." 2
+1 7 6 "person" "Just some random weirdo."
+7 4 126 "shirt" "It's something you put on your body." 2
+11 4 146 "pants" "Something to cover the junk in your trunk." 6

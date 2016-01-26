@@ -10,6 +10,8 @@ using namespace std;
 
 ALLEGRO_BITMAP* get_tile_asset(int);
 ALLEGRO_BITMAP* get_image_asset(int);
+ALLEGRO_BITMAP* get_portrait(int);
+ALLEGRO_BITMAP* get_interface_asset(int);
 ALLEGRO_FONT* get_font();
 
 bool get_mouse_pressed();
@@ -19,8 +21,11 @@ int get_mouse_y();
 bool get_any_key_down();
 bool get_key_down(int);
 
-void set_input(bool);
-ALLEGRO_USTR* get_input(bool);
+int add_new_input_string();
+void remove_input_string_at(int);
+int set_input_string(int);
+ALLEGRO_USTR* get_input();
+ALLEGRO_USTR* get_input(int);
 void clear_input();
 
 int update_from_event(ALLEGRO_EVENT);
@@ -56,7 +61,7 @@ void toggle_pause() {
 void toggle_command_line() {
     mode ^= 2;
     toggle_pause();
-    set_input(get_command_line());
+    set_input_string(get_command_line() ? 0 : -1);
 }
 void toggle_hack_mover() {
     mode ^= 4;
@@ -72,6 +77,8 @@ ALLEGRO_COLOR s_pigment[4];
 ALLEGRO_COLOR h_pigment[6];
 
 void init_game() {
+    add_new_input_string();
+
     black = al_map_rgb(0, 0, 0);
     dark = al_map_rgb(128, 128, 128);
     transparent = al_map_rgba(128, 128, 128, 128);
@@ -112,8 +119,10 @@ class Point {
     public:
         int x;
         int y;
-        Point() { x = 0; y = 0; }
-        Point(int a,int b) : x(a), y(b) {};
+        int z;
+        Point() { x = 0; y = 0; z = 0; }
+        Point(int a, int b) : x(a), y(b), z(0) {};
+        Point(int a, int b, int c) : x(a), y(b), z(c) {};
         Point operator +(const Point&);
         Point operator -(const Point&);
         void operator +=(const Point&);
@@ -121,12 +130,14 @@ class Point {
         bool operator ==(const Point&);
         bool operator >=(const Point&);
         void set_to(int, int);
+        void set_to(int, int, int);
 };
 
 Point Point::operator+(const Point& point) {
     Point temp;
     temp.x = x + point.x;
     temp.y = y + point.y;
+    temp.z = z + point.z;
     return temp;
 }
 
@@ -134,6 +145,7 @@ Point Point::operator-(const Point& point) {
     Point temp;
     temp.x = x - point.x;
     temp.y = y - point.y;
+    temp.z = z - point.z;
     return temp;
 }
 
@@ -142,22 +154,30 @@ void Point::set_to(int i, int j) {
     y = j;
 }
 
+void Point::set_to(int i, int j, int k) {
+    x = i;
+    y = j;
+    z = k;
+}
+
 void Point::operator+=(const Point& point) {
     x += point.x;
     y += point.y;
+    z += point.z;
 }
 
 void Point::operator-=(const Point& point) {
     x -= point.x;
     y -= point.y;
+    z -= point.z;
 }
 
 bool Point::operator==(const Point& point) {
-    return (x == point.x && y == point.y);
+    return (x == point.x && y == point.y && z == point.z);
 }
 
 bool Point::operator>=(const Point& point) {
-    return (y >= point.y || (y == point.y && x >= point.x));
+    return (y >= point.y || (y == point.y && x >= point.x) || (y == point.y && x == point.x && z >= point.z));
 }
 
 const int EAST = 0;
@@ -201,11 +221,13 @@ Point* convert_to_screen_coordinates(Point offset) {
     Point* temp = new Point(320, 201);
     temp->x += (offset.x+((view_angle%4 == 3 ? -1 : 1)*offset.y))*(view_angle > 4 ? -1 : 1);
     temp->y += (offset.y+((view_angle%4 == 1 ? -1 : 1)*offset.x))*(view_angle > 4 ? -1 : 1)/2;
+    // UGGHHH CAN'T FIGURE THIS OUT TODO LATER
+    temp->y -= offset.z;
     return temp;
 }
 
 Point* convert_from_screen_coordinates(Point crd) {
-    Point* temp = new Point(center->x, center->y);
+    Point* temp = new Point(center->x, center->y, center->z);
     temp->x += (((crd.x-320)/2)+((view_angle%4 == 1 ? -1 : 1)*(crd.y-201)))*(view_angle > 4 ? -1 : 1);
     temp->y += ((crd.y-201)+((view_angle%4 == 3 ? -1 : 1)*(crd.x-320)/2))*(view_angle > 4 ? -1 : 1);
     return temp;
@@ -222,20 +244,21 @@ bool get_within_stage(ALLEGRO_BITMAP* bitmap, int x, int y) {
 }
 
 class Domain {
-    private:
-        Point* pos;
-        int dx;
-        int dy;
-        bool elliptical;
     public:
+        Point* pos; // center point in xy-plane at minimum relative to z-axis
+        int dx; // outward radius from center in x-direction
+        int dy; // outward radius from center in y-direction
+        int dz; // upward height in z-direction
+        bool elliptical;
         Domain() {}
-        void set_to(Point* p, int i, int j, bool e) { pos = p; dx = i; dy = j; elliptical = e; }
+        void set_to(Point* p, int i, int j, bool e) { pos = p; dx = i; dy = j; dz = 0; elliptical = e; }
+        void set_to(Point* p, int i, int j, int k, bool e) { pos = p; dx = i; dy = j; dz = k; elliptical = e; }
         bool get_point(Point*);
         bool intersects(Domain*);
 };
 
 bool Domain::get_point(Point* p) {
-    if (p->x >= pos->x-dx && p->x <= pos->x+dx && p->y >= pos->y-dy && p->y <= pos->y+dy) {
+    if (p->x >= pos->x-dx && p->x <= pos->x+dx && p->y >= pos->y-dy && p->y <= pos->y+dy && p->z >= pos->z && p->z <= pos->z+dz) {
         if (!elliptical || pow(1.0*(p->x-pos->x)/dx, 2.0)+pow(1.0*(p->y-pos->y)/dy, 2.0) <= 1) {
             return true;
         }
@@ -245,7 +268,8 @@ bool Domain::get_point(Point* p) {
 
 bool Domain::intersects(Domain* d) {
     if (pos->x-dx <= d->pos->x+d->dx && pos->x+dx >= d->pos->x-d->dx
-        && pos->y-dy <= d->pos->y+d->dy && pos->y+dy >= d->pos->y-d->dy) {
+        && pos->y-dy <= d->pos->y+d->dy && pos->y+dy >= d->pos->y-d->dy
+        && pos->z < d->pos->z+d->dz && pos->z+dz >= d->pos->z) {
         if (!elliptical && !d->elliptical) { return true; }
         else { return true; } // TODO change later???
     }
@@ -275,17 +299,18 @@ class ConversationWindow;
  * Abstract, generic class for representing objects
  */
 class Object {
-    public:
+    protected:
         int id;
         int flags;
         int sprite;
         Point pos;
         Point mov;
+        int z;
         int dir;
         Domain dom;
         Area* loc;
         ALLEGRO_USTR* name;
-    //public:
+    public:
         Object(int);
         void add_flag(int);
         void remove_flag(int);
@@ -298,11 +323,11 @@ class Object {
         Area* get_locale();
         void set_locale(Area*);
         ALLEGRO_USTR* get_name();
-        int get_sprite_flipped();
-        void draw();
+        virtual int get_sprite_flipped();
+        virtual void draw();
         void update();
-        int on_click(ALLEGRO_EVENT);
-        virtual int on_click() = 0;
+        virtual int on_click(ALLEGRO_EVENT);
+        // virtual int on_click() = 0;
         virtual ALLEGRO_BITMAP* get_sprite() = 0;
         virtual ALLEGRO_USTR* get_description() = 0;
 };
@@ -316,9 +341,9 @@ class Item: public Object {
     public:
         ItemContainer* within;
         Item(int);
-        ALLEGRO_BITMAP* get_sprite();
+        virtual ALLEGRO_BITMAP* get_sprite();
         bool get_within_space(int, int);
-        int on_click();
+        virtual int on_click(ALLEGRO_EVENT);
         ALLEGRO_USTR* get_description();
 };
 
@@ -346,7 +371,7 @@ class ItemContainer: public Item {
         int add_item(Item*);
         int add_item(Item*, int, int);
         void remove_item(Item*);
-        int on_click();
+        virtual int on_click(ALLEGRO_EVENT);
 };
 
 class Equipment: public Item {
@@ -368,6 +393,30 @@ class Wall: public Item {
         bool get_flag(int);
 };
 
+class Openable: public Item {
+    protected:
+        int open_sprite; // -1 if just rotated when open, e.g. a door
+        Domain* open_dom;
+        bool locked;
+        int lock_key;
+    public:
+        bool opened;
+        Openable(int);
+        ALLEGRO_BITMAP* get_sprite();
+        int get_sprite_flipped();
+        virtual int on_click(ALLEGRO_EVENT);
+        void set_key(int);
+};
+
+class Key: public Item {
+    friend class Openable;
+    protected:
+        int lock_key;
+    public:
+        Key(int d) : Item(d) {}
+        void set_key(int);
+};
+
 class Foodstuff: public Item {
     private:
         int hunger;
@@ -382,7 +431,7 @@ class Plant: public Item {
     public:
         Plant(int);
         int harvest();
-        int on_click();
+        int on_click(ALLEGRO_EVENT);
 };
 
 /**
@@ -398,7 +447,7 @@ class Entity: public Object {
         Entity(int d) : Object(d), frame(0) {}
         ALLEGRO_BITMAP* get_sprite();
         void update();
-        int on_click();
+        virtual int on_click(ALLEGRO_EVENT);
         ALLEGRO_USTR* get_description();
 };
 
@@ -475,7 +524,7 @@ class Area {
         void add_object(Object*);
         void remove_object(Object*);
         void resort_objects();
-        bool check_collisions(Object*);
+        bool check_collisions(Object*, bool=true);
         void update_objects(ALLEGRO_EVENT);
 };
 
@@ -498,11 +547,11 @@ Object::Object(int d) {
     dir = view_angle;
     pos.set_to(1024, 1024);
     mov.set_to(0, 0);
-    dom.set_to(&pos, 3, 3, false);
-    loc = main_area;
-    flags = 0;
     sprite = get_sprite_by_id(id);
     name = al_ustr_new(get_name_by_id(id));
+    dom.set_to(&pos, 3, 3, al_get_bitmap_height(get_image_asset(sprite))*3/4, false);
+    loc = main_area;
+    flags = 0;
 }
 
 /**
@@ -561,14 +610,14 @@ int Object::get_sprite_flipped() {
 
 void Object::draw() {
     Point* draw_at = convert_to_screen_coordinates(pos-*center);
-    if (get_within_stage(get_sprite(), draw_at->x, draw_at->y)) {
-        ALLEGRO_BITMAP* bitmap = get_sprite();
+    if (get_within_stage(this->get_sprite(), draw_at->x, draw_at->y)) {
+        ALLEGRO_BITMAP* bitmap = this->get_sprite();
         if (get_flag(1)) {
             draw_tinted_bitmap(bitmap, invisible, draw_at->x-(al_get_bitmap_width(bitmap)/2),
-                draw_at->y-al_get_bitmap_height(bitmap), get_sprite_flipped());
+                draw_at->y-al_get_bitmap_height(bitmap), this->get_sprite_flipped());
         } else {
             draw_bitmap(bitmap, draw_at->x-(al_get_bitmap_width(bitmap)/2),
-                draw_at->y-al_get_bitmap_height(bitmap), get_sprite_flipped());
+                draw_at->y-al_get_bitmap_height(bitmap), this->get_sprite_flipped());
         }
     }
     delete draw_at;
@@ -669,6 +718,7 @@ int ItemContainer::add_item(Item* item) {
 
 int ItemContainer::add_item(Item* item, int x, int y) {
     cout << "Adding item <" << x << "," << y << ">: " << item << "\n";
+    if (item == this) { cout << "FAILURE TO ADD: INSERTING THIS INTO THIS\n"; return 0; }
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (get_item(x+i, y+j) != NULL) {
@@ -739,6 +789,35 @@ Equipment::Equipment(int d) : Item(d) {
 
 Weapon::Weapon(int d) : Item(d) {
 
+}
+
+Openable::Openable(int d) : Item(d), locked(false), opened(false) {
+    int* params = get_params_by_id(id);
+    open_sprite = params[0];
+    if (open_sprite == 0) { open_sprite = -1; }
+
+}
+
+ALLEGRO_BITMAP* Openable::get_sprite() {
+    if (open_sprite == -1 || !opened) {
+        return Item::get_sprite();
+    } else {
+        return get_image_asset(open_sprite);
+    }
+}
+
+int Openable::get_sprite_flipped() {
+    bool cond1 = ((rel_direction(dir)+6)%8 >= 5);
+    return (((!cond1 || (open_sprite < 0 && opened)) && (cond1 || !(open_sprite < 0 && opened)))
+        ? ALLEGRO_FLIP_HORIZONTAL : 0);
+}
+
+void Openable::set_key(int k) {
+    lock_key = k;
+}
+
+void Key::set_key(int k) {
+    lock_key = k;
 }
 
 Plant::Plant(int d) : Item(d) {
@@ -964,7 +1043,7 @@ void Area::load_area() {
                         }
                     }
                 }
-            } else {
+            } else if (line[0] != '/') {
                 int index = line.find(' ')+1;
                 line.copy(s, index-1);
                 int identifier = atoi(s);
@@ -981,6 +1060,8 @@ void Area::load_area() {
                 memset(&s[0], 0, sizeof(s));
                 new_object->set_position(xpos, ypos);
                 add_object(new_object);
+
+                // if (get_class_by_id(identifier) == 5)
             }
         }
     } else { cout << "[GAME] Failed to load file \"" << filename << "\".\n"; }
@@ -1080,11 +1161,27 @@ void Area::resort_objects() {
 /**
  * Returns false if collision detected, true if none
  */
-bool Area::check_collisions(Object* o) {
+bool Area::check_collisions(Object* o, bool change_z) {
+    Point* pos = o->get_position();
     for (int i = 0; i < num_objects; i++) {
-        if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
-            if (o != objects[i]) { return false; }
+        if (o != objects[i]) {
+            if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
+                if (change_z && objects[i]->get_domain()->dz < 6 && pos->z >= objects[i]->get_position()->z) {
+                    pos->z += objects[i]->get_domain()->dz;
+                    if (check_collisions(o, false)) {
+                        return true;
+                    } else {
+                        pos->z -= objects[i]->get_domain()->dz;
+                        return false;
+                    }
+                } else { return false; }
+            }
         }
+    }
+    if (change_z && pos->z > 0) {
+        int former = pos->z;
+        pos->z = (pos->z-6 < 0 ? 0 : pos->z-6);
+        if (!check_collisions(o)) { pos->z = former; }
     }
     return true;
 }
@@ -1114,6 +1211,7 @@ void draw_at_center() {
     //      for SE7, (32*(j+1),32*(k+1))
     //      for NE1, (32*(j+1),32*k)
     int disy = -((view_angle%6 == 1 ? 32-offset->x : offset->x)+(view_angle > 4 ? 32-offset->y : offset->y))/2;
+    disy += center->z;
     Point* basis = translate(indices, view_angle, DRAW_DISTANCE);
     for (int i = -DRAW_DISTANCE; i <= DRAW_DISTANCE; i++) {
         if (i != -DRAW_DISTANCE) { basis = translate(basis, (view_angle+5)%8); }
@@ -1141,11 +1239,12 @@ void draw_at_center() {
 
     // DRAW THE OBJECTS IN THE AREA
     for (int i = 0; i < main_area->num_objects; i++) {
-        if (Humanoid* hmnd = dynamic_cast<Humanoid*>(main_area->objects[i])) {
+        main_area->objects[i]->draw();
+        /*if (Humanoid* hmnd = dynamic_cast<Humanoid*>(main_area->objects[i])) {
             hmnd->draw();
         } else {
             main_area->objects[i]->draw();
-        }
+        }*/
     }
 
     // cleanup
@@ -1165,7 +1264,7 @@ class Window {
         bool mouse_fixed;
         Window();
         virtual int update_window(ALLEGRO_EVENT) = 0;
-        virtual ALLEGRO_BITMAP* get_bitmap() = 0;
+        virtual ALLEGRO_BITMAP* get_bitmap() { return get_interface_asset(1); }
         virtual void draw() = 0;
 };
 
@@ -1219,10 +1318,10 @@ class ContainerWindow: public Window {
     private:
         ItemContainer* cont;
     public:
-        ContainerWindow(ItemContainer* ic) : cont(ic) { cout << "New ContainerWindow."; }
+        ContainerWindow(ItemContainer* ic) : cont(ic) { cout << "New ContainerWindow.\n"; }
         int update_window(ALLEGRO_EVENT);
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
+        ItemContainer* get_container() { return cont; }
 };
 
 void ContainerWindow::draw() {
@@ -1236,7 +1335,7 @@ void ContainerWindow::draw() {
         for (int j = 0; j < cont->height; j++) {
             Item* item = cont->get_item(i, j);
             if (item == NULL) {
-                draw_bitmap(get_image_asset(3), x+xd+(10*i), y+yd+(10*j), 0);
+                draw_bitmap(get_interface_asset(2), x+xd+(10*i), y+yd+(10*j), 0);
             } else {
                 if (item->get_position()->x == i && item->get_position()->y == j) {
                     draw_bitmap(item->get_sprite(), x+xd+(10*i), y+yd+(10*j), 0);
@@ -1253,7 +1352,6 @@ class DescriptionWindow: public Window {
     public:
         DescriptionWindow(Object* obj) : object(obj) { text = object->get_description(); }
         int update_window(ALLEGRO_EVENT e) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1271,7 +1369,6 @@ class ConversationWindow: public Window {
     public:
         ConversationWindow(Entity* e) : ent(e) { x = y = 0; }
         int update_window(ALLEGRO_EVENT) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1288,7 +1385,6 @@ class EquipmentWindow: public Window {
     public:
         EquipmentWindow(Humanoid* h) : person(h) {}
         int update_window(ALLEGRO_EVENT) { return 0; }
-        ALLEGRO_BITMAP* get_bitmap() { return get_image_asset(2); }
         void draw();
 };
 
@@ -1304,13 +1400,11 @@ int Object::on_click(ALLEGRO_EVENT e) {
     if ((dragging == NULL || dragging == this) && e.mouse.button == 2) {
         add_window(new DescriptionWindow(this));
         return 1;
-    } else {
-        return this->on_click();
     }
     return 0;
 }
 
-int Entity::on_click() {
+int Entity::on_click(ALLEGRO_EVENT e) {
     if (dragging == NULL || dragging == this) {
         add_window(new ConversationWindow(this));
         return 1;
@@ -1318,17 +1412,24 @@ int Entity::on_click() {
     return 0;
 }
 
-int Item::on_click() {
+int Item::on_click(ALLEGRO_EVENT e) {
     cout << "Item clicked.\n";
-    if (ItemContainer* cont = dynamic_cast<ItemContainer*>(this)) {
-        return cont->on_click();
-    }
-    return 0;
+    return Object::on_click(e);
 }
 
-int ItemContainer::on_click() {
+int ItemContainer::on_click(ALLEGRO_EVENT e) {
     cout << "Item container clicked.\n";
-    if (dragging == NULL || dragging == this) {
+    if (Object::on_click(e)) {
+        return 1;
+    } else if (dragging == NULL || dragging == this) {
+        for (int i = 0; i < num_windows; i++) {
+            if (ContainerWindow* cw = dynamic_cast<ContainerWindow*>(windows[i])) {
+                if (cw->get_container() == this) {
+                    remove_window(cw);
+                    return 1;
+                }
+            }
+        }
         add_window(new ContainerWindow(this));
         return 1;
     } else if (Item* item = dynamic_cast<Item*>(dragging)) {
@@ -1339,7 +1440,24 @@ int ItemContainer::on_click() {
     return 0;
 }
 
-int Plant::on_click() {
+int Openable::on_click(ALLEGRO_EVENT e) {
+    // TODO add collision testing so you can't glitch into a door
+    if (!locked && dragging == NULL) {
+        opened = !opened;
+        return 1;
+    } else if (Key* key = dynamic_cast<Key*>(dragging)) {
+        if (lock_key == key->lock_key) {
+            locked = !locked;
+            opened = locked;
+            return 1;
+        }
+    }
+    // add function for lockpicks here
+    return 0;
+}
+
+int Plant::on_click(ALLEGRO_EVENT e) {
+    if (Object::on_click(e)) { return 1; }
     Object* hrvst = create_object(harvest());
     if (hrvst != NULL) {
         hrvst->set_position(translate(&pos, (view_angle+4)%8));
@@ -1511,7 +1629,13 @@ Object* create_object(int id) {
         case 4:
             return new Equipment(id);
         case 5:
+            return new Key(id);
+        case 6:
+            return new Openable(id);
+        case 7:
             return new Entity(id);
+        case -1:
+            return NULL;
         default:
             return new Item(0);
     }
@@ -1537,7 +1661,8 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
             delete[] windows;
             return 0;
         } else if (e.type == ALLEGRO_EVENT_TIMER) {
-            // do something
+            // update people and shit here
+            if (!get_paused()) { pc->update_player(e); }
             update = get_any_key_down();
         } else {
             update = true;
@@ -1547,7 +1672,7 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
                     break;
                 case 2: // ENTER key, interprets text
                     if (get_command_line()) {
-                        ALLEGRO_USTR* input = get_input(false);
+                        ALLEGRO_USTR* input = get_input();
                         if (al_ustr_find_cstr(input, 0, "spawn ") >= 0) {
                             al_ustr_find_replace_cstr(input, 0, "spawn ", "");
                             dragging = create_object(atoi(&al_cstr(input)[0]));
@@ -1580,11 +1705,10 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
         main_area->resort_objects();
         if (update) {
             update = false;
-            if (!get_paused()) { pc->update_player(e); }
             draw_at_center();
             draw_windows();
             if (get_command_line()) {
-                al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 10, 10, 0, get_input(true));
+                al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 10, 10, 0, get_input());
             }
             if (dragging != NULL) {
                 draw_tinted_bitmap(dragging->get_sprite(), transparent,
@@ -1606,6 +1730,8 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
 
 int new_game(ALLEGRO_EVENT_QUEUE* events) {
     init_game();
+    add_new_input_string();
+    // set_input(true);
 
     int hair_color = 1;
     int hair_style = 0;
@@ -1662,39 +1788,46 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
                 }
             }
             if (e.mouse.x >= 191 && e.mouse.x <= 451 && e.mouse.y >= 112 && e.mouse.y <= 131) {
-                set_input(true);
+                set_input_string(1);
                 // TODO calc where to place cursor
             } else {
-                set_input(false);
+                set_input_string(-1);
             }
+        } else {
+            update_from_event(e);
         }
 
         if (update) {
             al_clear_to_color(al_map_rgb(179, 152, 125));
-            al_draw_bitmap(get_image_asset(1), 140, 80, 0);
+            al_draw_bitmap(get_interface_asset(0), 140, 80, 0);
+
+            al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 197, 117, 0, get_input(1));
 
             //al_draw_bitmap(get_image_asset(8), 200, 200, 0);
             int d = dir;
             d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
-            al_draw_tinted_bitmap(get_image_asset(9+(frame/10)+(4*d)), s_pigment[skin_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_tinted_bitmap(get_image_asset(6+(frame/10)+(4*d)), s_pigment[skin_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
 
-            al_draw_bitmap(get_image_asset(149+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_bitmap(get_image_asset(129+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(146+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(126+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
 
-            al_draw_bitmap(get_image_asset(29+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_tinted_bitmap(get_image_asset(49+(40*hair_style)+(frame/10)+(4*d)), h_pigment[hair_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_bitmap(get_image_asset(69+(40*hair_style)+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(26+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_tinted_bitmap(get_image_asset(46+(40*hair_style)+(frame/10)+(4*d)), h_pigment[hair_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_asset(66+(40*hair_style)+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+
+            al_draw_bitmap(get_portrait(portrait_type), 390, 153, 0);
 
             al_flip_display();
             update = false;
         }
     }
 
-    pc = new Player(rand() % 100, skin_color, hair_color, 49+(40*hair_style));
+    pc = new Player(rand() % 100, skin_color, hair_color, 46+(40*hair_style));
     cout << "[GAME] Equipping player...\n";
     pc->equip_item(dynamic_cast<Equipment*>(create_object(7)));
     pc->equip_item(dynamic_cast<Equipment*>(create_object(11)));
 
+    set_input_string(-1);
     return run_game(events);
 }
 

@@ -47,7 +47,7 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1453391956 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\file-io.cpp
+1453654613 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\file-io.cpp
 	<cstdlib>
 	<iostream>
 	<fstream>
@@ -60,7 +60,7 @@
 	<fstream>
 	<allegro5/allegro.h>
 
-1453237525 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\assets.cpp
+1453841904 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\assets.cpp
 	<iostream>
 	<string>
 	<allegro5/allegro5.h>
@@ -75,7 +75,7 @@
 	<allegro5/allegro_ttf.h>
 	<allegro5/allegro_native_dialog.h>
 
-1453175588 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\input-manager.cpp
+1453841060 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\input-manager.cpp
 	<iostream>
 	<allegro5/allegro.h>
 
@@ -83,7 +83,7 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1453571436 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
+1453841827 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
 	<iostream>
 	<fstream>
 	<stdlib.h>
