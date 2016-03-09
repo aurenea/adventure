@@ -122,11 +122,14 @@ void load_objects() {
                 int additional = 0;
                 switch (oref->class_type) {
                     case 2:
+                    case 4:
                         additional = 2;
                         break;
                     case 3:
-                    case 4:
                         additional = 1;
+                        break;
+                    case 7:
+                        additional = 5;
                         break;
                 }
                 //other_by_id[id] = new int[additional];

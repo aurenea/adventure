@@ -11,6 +11,8 @@ int screen_height = 400;
 // UP, DOWN, LEFT, RIGHT, PAUSE
 int keymap[5];
 
+// 0 to not show, 1 to show on mouse-over, 2 to show all the time
+int show_action_icon;
 int flags = 0;
 
 int get_FPS() {
@@ -50,6 +52,8 @@ void default_options() {
     keymap[2] = ALLEGRO_KEY_DOWN;
     keymap[3] = ALLEGRO_KEY_RIGHT;
     keymap[4] = ALLEGRO_KEY_SPACE;
+
+    show_action_icon = 1;
 }
 
 void load_options() {

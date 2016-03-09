@@ -10,9 +10,10 @@ using namespace std;
 
 ALLEGRO_BITMAP* get_tile_asset(int);
 ALLEGRO_BITMAP* get_image_asset(int);
+ALLEGRO_BITMAP* get_image_sprite(int);
 ALLEGRO_BITMAP* get_portrait(int);
 ALLEGRO_BITMAP* get_interface_asset(int);
-ALLEGRO_FONT* get_font();
+ALLEGRO_FONT* get_font(int);
 
 bool get_mouse_pressed();
 int get_mouse_x();
@@ -67,6 +68,7 @@ void toggle_hack_mover() {
     mode ^= 4;
 }
 
+ALLEGRO_COLOR white;
 ALLEGRO_COLOR black;
 ALLEGRO_COLOR dark;
 ALLEGRO_COLOR transparent;
@@ -76,9 +78,12 @@ ALLEGRO_COLOR sky;
 ALLEGRO_COLOR s_pigment[4];
 ALLEGRO_COLOR h_pigment[6];
 
+ALLEGRO_USTR* description[21];
+
 void init_game() {
     add_new_input_string();
 
+    white = al_map_rgb(255, 255, 255);
     black = al_map_rgb(0, 0, 0);
     dark = al_map_rgb(128, 128, 128);
     transparent = al_map_rgba(128, 128, 128, 128);
@@ -89,12 +94,34 @@ void init_game() {
     s_pigment[2] = al_map_rgb(122, 85, 46);
     s_pigment[3] = al_map_rgb(82, 57, 31);
 
-    h_pigment[0] = al_map_rgb(46, 24, 0);
-    h_pigment[1] = al_map_rgb(77, 40, 0);
-    h_pigment[2] = al_map_rgb(13, 7, 0);
-    h_pigment[3] = al_map_rgb(191, 156, 48);
-    h_pigment[4] = al_map_rgb(191, 64, 0);
-    h_pigment[5] = al_map_rgb(230, 230, 230);
+    h_pigment[0] = al_map_rgb(46, 24, 0); // dark brown
+    h_pigment[1] = al_map_rgb(77, 40, 0); // brown
+    h_pigment[2] = al_map_rgb(13, 7, 0); // black
+    h_pigment[3] = al_map_rgb(191, 156, 48); // blond
+    h_pigment[4] = al_map_rgb(191, 64, 0); // red
+    h_pigment[5] = al_map_rgb(230, 230, 230); // silver or white
+
+    description[0] = al_ustr_new("Health");
+    description[1] = al_ustr_new("Fatigue");
+    description[2] = al_ustr_new("Hunger");
+    description[3] = al_ustr_new("Unarmed: Punching and grappling attacks");
+    description[4] = al_ustr_new("Blunt: Maces, flails, and other blunt weapons");
+    description[5] = al_ustr_new("Dagger: Daggers and rapiers");
+    description[6] = al_ustr_new("Spear: Spears and halberds");
+    description[7] = al_ustr_new("Sword: Light and heavy swords");
+    description[8] = al_ustr_new("Axe: Handaxes and battleaxes");
+    description[9] = al_ustr_new("Ranged: Bows, crossbows, and firearms");
+    description[10] = al_ustr_new("Thrown: Slings and thrown weapons");
+    description[11] = al_ustr_new("Shields: Blocking and shield bashing");
+    description[12] = al_ustr_new("Armor: Proficiency with armor");
+    description[13] = al_ustr_new("Smithing: Crafting of new weapons and armor");
+    description[14] = al_ustr_new("Negotiation: Better prices with buying and selling");
+    description[15] = al_ustr_new("Healing: Ability to treat wounds");
+    description[16] = al_ustr_new("Stealth: Hiding and sneaking without alerting others");
+    description[17] = al_ustr_new("Pickpocket: Filching items from people's pockets");
+    description[18] = al_ustr_new("Lockpicking: Opening locks and disabling traps");
+    description[19] = al_ustr_new("Strength: Ability to carry items without encumberance");
+    description[20] = al_ustr_new("Athletics: Sprinting and swimming");
 
     srand(time(NULL));
 }
@@ -110,27 +137,27 @@ void draw_tinted_bitmap(ALLEGRO_BITMAP* bmp, ALLEGRO_COLOR color, float x, float
     else { al_draw_tinted_bitmap(bmp, color, x, y, flags); }
 }
 
-void draw_ustr(ALLEGRO_USTR* ustr, float x, float y, int flags) {
-    if (get_paused()) { al_draw_ustr(get_font(), dark, x, y, flags, ustr); }
-    else { al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), x, y, flags, ustr); }
+void draw_ustr(ALLEGRO_USTR* ustr, float x, float y, int flags, int font = 0) {
+    if (get_paused()) { al_draw_ustr(get_font(font), dark, x, y, flags, ustr); }
+    else { al_draw_ustr(get_font(font), al_map_rgb(255, 255, 255), x, y, flags, ustr); }
 }
 
 class Point {
     public:
-        int x;
-        int y;
+        float x;
+        float y;
         int z;
         Point() { x = 0; y = 0; z = 0; }
-        Point(int a, int b) : x(a), y(b), z(0) {};
-        Point(int a, int b, int c) : x(a), y(b), z(c) {};
+        Point(float a, float b) : x(a), y(b), z(0) {};
+        Point(float a, float b, int c) : x(a), y(b), z(c) {};
         Point operator +(const Point&);
         Point operator -(const Point&);
         void operator +=(const Point&);
         void operator -=(const Point&);
         bool operator ==(const Point&);
         bool operator >=(const Point&);
-        void set_to(int, int);
-        void set_to(int, int, int);
+        void set_to(float, float, int=-1);
+        float length(bool=false);
 };
 
 Point Point::operator+(const Point& point) {
@@ -149,15 +176,10 @@ Point Point::operator-(const Point& point) {
     return temp;
 }
 
-void Point::set_to(int i, int j) {
+void Point::set_to(float i, float j, int k) {
     x = i;
     y = j;
-}
-
-void Point::set_to(int i, int j, int k) {
-    x = i;
-    y = j;
-    z = k;
+    if (k >= 0) { z = k; }
 }
 
 void Point::operator+=(const Point& point) {
@@ -180,6 +202,14 @@ bool Point::operator>=(const Point& point) {
     return (y >= point.y || (y == point.y && x >= point.x) || (y == point.y && x == point.x && z >= point.z));
 }
 
+float Point::length(bool include_z) {
+    if (include_z) {
+        return sqrt(pow(x, 2)+pow(y, 2)+pow(z, 2));
+    } else {
+        return sqrt(pow(x, 2)+pow(y, 2));
+    }
+}
+
 const int EAST = 0;
 const int NORTHEAST = 1;
 const int NORTH = 2;
@@ -189,6 +219,14 @@ const int SOUTHWEST = 5;
 const int SOUTH = 6;
 const int SOUTHEAST = 7;
 int view_angle = SOUTHWEST;
+
+void rotate_view_clockwise() {
+    view_angle = (view_angle+6)%8;
+}
+
+void rotate_view_counterclockwise() {
+    view_angle = (view_angle+2)%8;
+}
 
 int rel_direction(int dir) {
     return (dir-view_angle+10)%8;
@@ -211,16 +249,17 @@ Point* translate(Point* point, int angle, int distance = 1) {
 }
 
 int get_angle_of_vector(Point* p) {
-    int a = (int)(atan2(-p->y, p->x)*4/3.1415926535);
+    int a = (int)round(atan2(-p->y, p->x)*4/3.1415926535);
     return (a+8)%8;
 }
 
 Point* center;
 
 Point* convert_to_screen_coordinates(Point offset) {
+    // when center.x and center.y have different parity, results in odd graphical errors
     Point* temp = new Point(320, 201);
     temp->x += (offset.x+((view_angle%4 == 3 ? -1 : 1)*offset.y))*(view_angle > 4 ? -1 : 1);
-    temp->y += (offset.y+((view_angle%4 == 1 ? -1 : 1)*offset.x))*(view_angle > 4 ? -1 : 1)/2;
+    temp->y += (int) ((offset.y+((view_angle%4 == 1 ? -1 : 1)*offset.x))*(view_angle > 4 ? -1 : 1)/2);
     // UGGHHH CAN'T FIGURE THIS OUT TODO LATER
     temp->y -= offset.z;
     return temp;
@@ -288,7 +327,10 @@ class Player;
 
 Object* create_object(int);
 
+class Action;
+
 class Area;
+class OutdoorArea;
 
 class Window;
 class ContainerWindow;
@@ -339,10 +381,12 @@ class Item: public Object {
     private:
         int space;
     public:
-        ItemContainer* within;
+        Object* within;
         Item(int);
         virtual ALLEGRO_BITMAP* get_sprite();
         bool get_within_space(int, int);
+        void remove_from_within(int = -1);
+        void add_to_within(Item*);
         virtual int on_click(ALLEGRO_EVENT);
         ALLEGRO_USTR* get_description();
 };
@@ -377,14 +421,27 @@ class ItemContainer: public Item {
 class Equipment: public Item {
     friend class Humanoid;
     private:
+        int w_sprite;
         int e_area;
+        int mDEF[4];
     public:
         Equipment(int);
 };
 
 class Weapon: public Item {
+    private:
+        int type;
+        int d_type; // 0 BLUNT, 1 SLASHING, 2 PIERCING
+        int mHIT;
+        int mDMG;
+        int mCRT;
     public:
         Weapon(int);
+        int get_type() { return type; }
+        int get_damage() { return d_type; }
+        int get_HIT() { return mHIT; }
+        int get_DMG() { return mDMG; }
+        int get_CRT() { return mCRT; }
 };
 
 class Wall: public Item {
@@ -438,17 +495,62 @@ class Plant: public Item {
  * Abstract class for representing people and creatures
  */
 class Entity: public Object {
-    private:
+    friend class Humanoid;
+    protected:
+        ALLEGRO_USTR* char_name;
         float hunger;
-        float thirst;
         float fatigue;
+        int* max_health;
+        Action* action;
     public:
         int frame;
         Entity(int d) : Object(d), frame(0) {}
         ALLEGRO_BITMAP* get_sprite();
-        void update();
-        virtual int on_click(ALLEGRO_EVENT);
+        virtual void update();
+        ALLEGRO_USTR* get_name() { return char_name; }
         ALLEGRO_USTR* get_description();
+        void harm(int, int);
+        virtual int get_CMB(int) = 0;
+        virtual int get_HIT(bool=false) = 0;
+        virtual int get_DMG(bool=false) = 0;
+        virtual int get_CRT(bool=false) = 0;
+        virtual int get_attack_type(bool=false) = 0;
+        virtual int get_EVA(int) = 0;
+        virtual int get_DEF(int, int) = 0;
+};
+
+/**
+ * For Entities not controlled by the player (essentially, NPC AI)
+ */
+class NPC {
+    protected:
+        int bCMB;
+        int bEVA;
+        bool aggression;
+        int hostility;
+    public:
+        NPC() {}
+        // void update();
+        // virtual int on_click(ALLEGRO_EVENT);
+};
+
+/**
+ * For NPCs which are not humanoids/can't be spoken with
+ */
+class BasicNPC: public Entity, public NPC {
+    protected:
+        int bDEF[4];
+        Weapon* nat_weapon;
+    public:
+        BasicNPC(int d) : Entity(d), NPC() {}
+        int on_click(ALLEGRO_EVENT e) { return 0; /*NPC::on_click(e);*/ }
+        int get_CMB(int type) { return bCMB; }
+        int get_EVA(int b_part) { return bEVA*100/max_health[b_part]; }
+        int get_HIT(bool=false);
+        int get_DMG(bool=false);
+        int get_CRT(bool=false);
+        int get_DEF(int b_part, int d_type) { return bDEF[d_type]; }
+        int get_attack_type(bool offhand = false) { return nat_weapon->get_damage(); }
 };
 
 /**
@@ -456,25 +558,53 @@ class Entity: public Object {
  */
 class Humanoid: public Entity {
     protected:
+        ALLEGRO_USTR* c_title;
         int s_color;
         int h_color;
         int h_type;
+        int p_type;
         /**
          * LIST OF EQUIP AREAS
          *  0   Head
-         *  1   Neck
-         *  2   Chest
-         *  3   Back
-         *  4   Arms
-         *  5   Waist
-         *  6   Legs
-         *  7   Feet
+         *  4   Neck
+         *  1   Chest
+         *  7   Back
+         *  3   Arms
+         *  6   Waist
+         *  5   Legs
+         *  2   Feet
          */
         Equipment* equip[8];
+        Weapon* hands[2];
     public:
-        Humanoid(int, int, int, int);
+        Humanoid(int, int, int, int, int);
+        ALLEGRO_BITMAP* get_port() { return get_portrait(p_type+1); }
         void draw();
-        Equipment* equip_item(Equipment*);
+        void draw(Point*, int, int = 0);
+        Item* equip_item(Object*, int);
+        void deequip_item(Object*, int = -1);
+        Equipment* get_equip(int a) { return equip[a]; }
+        Weapon* get_hands(int a) { return hands[a]; }
+        ALLEGRO_USTR* get_title() { return c_title; }
+        int get_HIT(bool = false);
+        int get_DMG(bool = false);
+        int get_CRT(bool = false);
+        int get_attack_type(bool = false);
+        int get_DEF(int, int);
+};
+
+/**
+ * For human and kobold NPCs that you can/are meant to talk to
+ */
+class Person: public NPC, public Humanoid {
+    private:
+        int interests;
+        int personality;
+    public:
+        Person(int);
+        int on_click(ALLEGRO_EVENT);
+        int get_CMB(int);
+        int get_EVA(int);
 };
 
 /**
@@ -483,29 +613,42 @@ class Humanoid: public Entity {
 class Player: public Humanoid {
     private:
         int identifier;
+        int sXP[18]; // skill experience
+        int cXP; // experience to raise CMB
+        int eXP; // experience to raise EVA
     public:
-        Player(int i, int sc, int hc, int ht) : Humanoid(1, sc, hc, ht) {}
+        Player(int, ALLEGRO_USTR*, int, int, int, int);
         void update_player(ALLEGRO_EVENT);
+        int on_click(ALLEGRO_EVENT);
+        int get_CMB(int);
+        int get_EVA(int);
+        void add_CMB(int);
+        void add_EVA();
 };
 
 /**
- * For Entities not controlled by the player (essentially, NPC AI)
+ * Class for non-immediate actions, like attacking or lockpicking
  */
-class NPC: public Entity {
+class Action {
+    protected:
+        Entity* actor;
+        Object* obj;
+        int max_distance;
+        int time_remaining = 0; // -1 for indefinite, >0 for timed
     public:
-        NPC(int d) : Entity(d) {}
+        Action(Entity*, Object*);
+        bool can_be_executed();
+        void update();
+        virtual int execute() = 0;
 };
 
-/**
- * For human and kobold NPCs
- */
-class Person: public NPC, public Humanoid {
-    private:
-        int interests;
-        int personality;
+class Attack: public Action {
+    protected:
+        int body_part = -1;
     public:
-        // TODO fix next line
-        Person(int d) : NPC(d), Humanoid(d, 2, 1, 69) {}
+        Attack(Entity*, Object*);
+        int execute();
+        void make_attack(Entity*, bool);
 };
 
 /**
@@ -523,6 +666,7 @@ class Area {
         void load_area();
         void add_object(Object*);
         void remove_object(Object*);
+        int find_object(Object*, int, int);
         void resort_objects();
         bool check_collisions(Object*, bool=true);
         void update_objects(ALLEGRO_EVENT);
@@ -550,7 +694,7 @@ Object::Object(int d) {
     sprite = get_sprite_by_id(id);
     name = al_ustr_new(get_name_by_id(id));
     dom.set_to(&pos, 3, 3, al_get_bitmap_height(get_image_asset(sprite))*3/4, false);
-    loc = main_area;
+    loc = NULL;
     flags = 0;
 }
 
@@ -625,16 +769,18 @@ void Object::draw() {
 
 void Object::update() {
     pos += mov;
-    if (!loc->check_collisions(this)) {
-        pos -= mov;
-        int just_y = mov.y;
-        mov.set_to(mov.x, 0);
-        pos += mov;
+    if (loc != NULL) {
         if (!loc->check_collisions(this)) {
             pos -= mov;
-            mov.set_to(0, just_y);
+            int just_y = mov.y;
+            mov.set_to(mov.x, 0);
             pos += mov;
-            if (!loc->check_collisions(this)) { pos -= mov; }
+            if (!loc->check_collisions(this)) {
+                pos -= mov;
+                mov.set_to(0, just_y);
+                pos += mov;
+                if (!loc->check_collisions(this)) { pos -= mov; }
+            }
         }
     }
     if (mov.x != 0 || mov.y != 0) {
@@ -664,6 +810,42 @@ ALLEGRO_BITMAP* Item::get_sprite() {
 bool Item::get_within_space(int i, int j) {
     if (i < 0 || i >= 4 || j < 0 || j >= 4) { return false; }
     return ((space & (1 << ((3-i)+(4*(3-j))))) != 0);
+}
+
+void Item::remove_from_within(int slot) {
+    if (loc != NULL) {
+        loc->remove_object(this);
+    } else if (ItemContainer* item_container = dynamic_cast<ItemContainer*>(within)) {
+        item_container->remove_item(this);
+    } else if (Humanoid* humanoid = dynamic_cast<Humanoid*>(within)) {
+        humanoid->deequip_item(this, slot);
+    }
+}
+
+void Item::add_to_within(Item* thingy) {
+    if (loc != NULL) {
+        loc->add_object(thingy);
+        return;
+    } else if (ItemContainer* item_container = dynamic_cast<ItemContainer*>(within)) {
+        item_container->add_item(thingy);
+        return;
+    } else if (Humanoid* humanoid = dynamic_cast<Humanoid*>(within)) {
+        if (Equipment* eq = dynamic_cast<Equipment*>(thingy)) {
+            if (humanoid->get_equip(eq->e_area) == NULL) {
+                humanoid->equip_item(eq, eq->e_area);
+                return;
+            }
+        } else if (Weapon* wp = dynamic_cast<Weapon*>(thingy)) {
+            if (humanoid->get_hands(0) == NULL) {
+                humanoid->equip_item(wp, 0);
+                return;
+            } else if (humanoid->get_hands(1) == NULL) {
+                humanoid->equip_item(wp, 1);
+                return;
+            }
+        }
+    }
+    main_area->add_object(thingy);
 }
 
 ALLEGRO_USTR* Item::get_description() {
@@ -753,12 +935,12 @@ int ItemContainer::add_item(Item* item, int x, int y) {
         if (added && holder[i] == NULL) { holder[i] = items[i-1]; }
     }
     if (!added) { holder[num_items-1] = item; }
+    item->remove_from_within();
+    item->within = this;
     item->set_position(x, y);
     delete[] items;
     cout << "Items position set.\n";
     items = holder;
-    if (item->within != NULL) { item->within->remove_item(item); }
-    item->within = this;
     return 1;
 }
 
@@ -784,11 +966,18 @@ void ItemContainer::remove_item(Item* item) {
 }
 
 Equipment::Equipment(int d) : Item(d) {
-    e_area = get_params_by_id(id)[0];
+    int* params = get_params_by_id(id);
+    e_area = params[0];
+    w_sprite = params[1];
 }
 
 Weapon::Weapon(int d) : Item(d) {
-
+    int* params = get_params_by_id(id);
+    mHIT = params[0];
+    mDMG = params[1];
+    mCRT = params[2];
+    type = params[3];
+    d_type = params[4];
 }
 
 Openable::Openable(int d) : Item(d), locked(false), opened(false) {
@@ -839,13 +1028,12 @@ void Entity::update() {
     Object::update();
     if (mov.x != 0 || mov.y != 0) { frame = (frame+1)%60; }
     else { frame = 0; }
-
 }
 
 ALLEGRO_BITMAP* Entity::get_sprite() {
     int d = rel_direction(dir);
     d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
-    return get_image_asset(sprite+((frame/5)%4)+(4*d));
+    return get_image_sprite(sprite+((frame/5)%4)+(4*d));
 }
 
 ALLEGRO_USTR* Entity::get_description() {
@@ -853,10 +1041,42 @@ ALLEGRO_USTR* Entity::get_description() {
     return get_desc_by_id(id);
 }
 
-Humanoid::Humanoid(int d, int sc, int hc, int ht) : Entity(d), s_color(sc), h_color(hc), h_type(ht) {
+void Entity::harm(int body_part, int d_type) {
+
+}
+
+// TODO stuff with this??? maybe???????
+/*void NPC::update() {
+    if (hostility > 0) {
+        if (aggression) {
+            // TODO make this better
+            action = new Attack(this, pc);
+        }
+    }
+    Entity::update();
+}*/
+
+int BasicNPC::get_HIT(bool offhand) {
+    return get_CMB(-1)+nat_weapon->get_HIT();
+}
+
+int BasicNPC::get_DMG(bool offhand) {
+    return ((get_CMB(-1)-40)/5)+nat_weapon->get_DMG();
+}
+
+int BasicNPC::get_CRT(bool offhand) {
+    return get_CMB(-1)+nat_weapon->get_CRT();
+}
+
+Humanoid::Humanoid(int d, int sc, int hc, int ht, int pt) : Entity(d), s_color(sc), h_color(hc), h_type(ht), p_type(pt) {
     for (int i = 0; i < 8; i++) {
         equip[i] = NULL;
     }
+    hands[0] = hands[1] = NULL;
+    max_health = new int[6];
+    max_health[0] = 100;
+    max_health[1] = 25;
+    for (int i = 2; i < 6; i++) { max_health[i] = 50; }
 }
 
 void Humanoid::draw() {
@@ -865,69 +1085,105 @@ void Humanoid::draw() {
     int i = ((frame/5)%4)+(4*d);
 
     Point* draw_at = convert_to_screen_coordinates(pos-*center);
-    if (get_within_stage(get_image_asset(i), draw_at->x, draw_at->y)) {
-        // sprite for body
-        ALLEGRO_BITMAP* bmp1 = get_image_asset(sprite+i);
-        // sprite for shadowing
-        ALLEGRO_BITMAP* bmp2 = get_image_asset(sprite+i+20);
-        draw_at->set_to(draw_at->x-(al_get_bitmap_width(bmp1)/2), draw_at->y-al_get_bitmap_height(bmp1));
-        int flip = get_sprite_flipped();
-        if (get_flag(1)) {
-            // draw body
-            unsigned char *r, *g, *b;
-            al_unmap_rgb(s_pigment[s_color], r, g, b);
-            draw_tinted_bitmap(bmp1, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
-            // draw clothing (except head)
-            for (int a = 7; a > 0; a--) {
-                if (equip[a] != NULL) {
-                    draw_tinted_bitmap(get_image_asset(equip[a]->sprite+i), invisible, draw_at->x, draw_at->y, flip);
-                }
-            }
-            // draw shadowing
-            draw_tinted_bitmap(bmp2, invisible, draw_at->x, draw_at->y, flip);
-            // draw hair (if they have any)
-            if (h_type >= 0) {
-                al_unmap_rgb(h_pigment[h_color], r, g, b);
-                draw_tinted_bitmap(get_image_asset(h_type+i), al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
-                draw_tinted_bitmap(get_image_asset(h_type+i+20), invisible, draw_at->x, draw_at->y, flip);
-            }
-            // draw head equipment
-            if (equip[0] != NULL) {
-                draw_tinted_bitmap(get_image_asset(equip[0]->sprite+i), invisible, draw_at->x, draw_at->y, flip);
-            }
-        } else {
-            // draw body
-            draw_tinted_bitmap(bmp1, s_pigment[s_color], draw_at->x, draw_at->y, flip);
-            // draw clothing
-            for (int a = 7; a > 0; a--) {
-                if (equip[a] != NULL) {
-                    draw_bitmap(get_image_asset(equip[a]->sprite+i), draw_at->x, draw_at->y, flip);
-                }
-            }
-            // draw shadowing
-            draw_bitmap(bmp2, draw_at->x, draw_at->y, flip);
-            // draw hair (if they have any)
-            if (h_type >= 0) {
-                draw_tinted_bitmap(get_image_asset(h_type+i), h_pigment[h_color], draw_at->x, draw_at->y, flip);
-                draw_bitmap(get_image_asset(h_type+i+20), draw_at->x, draw_at->y, flip);
-            }
-            // draw head equipment
-            if (equip[0] != NULL) {
-                draw_bitmap(get_image_asset(equip[0]->sprite+i), draw_at->x, draw_at->y, flip);
-            }
-        }
+    if (get_within_stage(get_image_sprite(sprite+i), draw_at->x, draw_at->y)) {
+        draw(draw_at, i, get_sprite_flipped());
     }
     delete draw_at;
+}
+
+void Humanoid::draw(Point* draw_at, int i, int flip) {
+    // sprite for body
+    ALLEGRO_BITMAP* bmp1 = get_image_sprite(sprite+i);
+    // sprite for shadowing
+    ALLEGRO_BITMAP* bmp2 = get_image_sprite(sprite+i+20);
+    draw_at->set_to(draw_at->x-(al_get_bitmap_width(bmp1)/2), draw_at->y-al_get_bitmap_height(bmp1));
+    if (get_flag(1)) {
+        // draw body
+        unsigned char *r, *g, *b;
+        al_unmap_rgb(s_pigment[s_color], r, g, b);
+        draw_tinted_bitmap(bmp1, al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+        // draw clothing (except head)
+        if (equip[7] != NULL && i >= 12) {
+            draw_tinted_bitmap(get_image_sprite(equip[7]->w_sprite+i), invisible, draw_at->x, draw_at->y, flip);
+        }
+        for (int a = 5; a > 0; a--) {
+            if (equip[a] != NULL) {
+                draw_tinted_bitmap(get_image_sprite(equip[a]->w_sprite+i), invisible, draw_at->x, draw_at->y, flip);
+            }
+        }
+        if (equip[6] != NULL) {
+            draw_tinted_bitmap(get_image_sprite(equip[6]->w_sprite+i), invisible, draw_at->x, draw_at->y, flip);
+        }
+        if (equip[7] != NULL && i < 12) {
+            draw_tinted_bitmap(get_image_sprite(equip[7]->w_sprite+i), invisible, draw_at->x, draw_at->y, flip);
+        }
+        // draw shadowing
+        draw_tinted_bitmap(bmp2, invisible, draw_at->x, draw_at->y, flip);
+        // draw hair (if they have any)
+        if (h_type >= 0) {
+            al_unmap_rgb(h_pigment[h_color], r, g, b);
+            draw_tinted_bitmap(get_image_sprite(h_type+i), al_map_rgba((int)r/4, (int)g/4, (int)b/4, 64), draw_at->x, draw_at->y, flip);
+            draw_tinted_bitmap(get_image_sprite(h_type+i+20), invisible, draw_at->x, draw_at->y, flip);
+        }
+        // draw head equipment
+        if (equip[0] != NULL) {
+            draw_tinted_bitmap(get_image_sprite(equip[0]->w_sprite+i), invisible, draw_at->x, draw_at->y, flip);
+        }
+    } else {
+        // draw body
+        draw_tinted_bitmap(bmp1, s_pigment[s_color], draw_at->x, draw_at->y, flip);
+        // draw clothing
+        if (equip[7] != NULL && i >= 12) {
+            draw_bitmap(get_image_sprite(equip[7]->w_sprite+i), draw_at->x, draw_at->y, flip);
+        }
+        for (int a = 5; a > 0; a--) {
+            if (equip[a] != NULL) {
+                draw_bitmap(get_image_sprite(equip[a]->w_sprite+i), draw_at->x, draw_at->y, flip);
+            }
+        }
+        if (equip[6] != NULL) {
+            draw_bitmap(get_image_sprite(equip[6]->w_sprite+i), draw_at->x, draw_at->y, flip);
+        }
+        if (equip[7] != NULL && i < 12) {
+            draw_bitmap(get_image_sprite(equip[7]->w_sprite+i), draw_at->x, draw_at->y, flip);
+        }
+        // draw shadowing
+        draw_bitmap(bmp2, draw_at->x, draw_at->y, flip);
+        // draw hair (if they have any)
+        if (h_type >= 0) {
+            draw_tinted_bitmap(get_image_sprite(h_type+i), h_pigment[h_color], draw_at->x, draw_at->y, flip);
+            draw_bitmap(get_image_sprite(h_type+i+20), draw_at->x, draw_at->y, flip);
+        }
+        // draw head equipment
+        if (equip[0] != NULL) {
+            draw_bitmap(get_image_sprite(equip[0]->w_sprite+i), draw_at->x, draw_at->y, flip);
+        }
+    }
 }
 
 /**
  * Equips the given item, returns what was in the equip slot before.
  */
-Equipment* Humanoid::equip_item(Equipment* eq) {
-    cout << "[GAME] Equip called: " << eq->e_area << "\n";
-    Equipment* former = equip[eq->e_area];
-    equip[eq->e_area] = eq;
-    return former;
+Item* Humanoid::equip_item(Object* thingy, int slot) {
+    cout << "[GAME::Humanoid] Equip called with slot " << slot << ".\n";
+    if (Equipment* eq = dynamic_cast<Equipment*>(thingy)) {
+        if (slot == eq->e_area) {
+            Equipment* former = equip[eq->e_area];
+            equip[eq->e_area] = eq;
+            eq->remove_from_within();
+            if (former != NULL) { eq->add_to_within(former); }
+            eq->within = this;
+            return former;
+        }
+    } else if (Weapon* wp = dynamic_cast<Weapon*>(thingy)) {
+        Weapon* formr = hands[slot];
+        hands[slot] = wp;
+        wp->remove_from_within(slot == 0 ? 1 : 0);
+        if (formr != NULL) { wp->add_to_within(formr); }
+        wp->within = this;
+        return formr;
+    }
+    return NULL;
 
     /* if (a >= 10 || a < 0) { return; }
     if (a == 3) {
@@ -948,12 +1204,82 @@ Equipment* Humanoid::equip_item(Equipment* eq) {
     equip[a] = item; */
 }
 
+void Humanoid::deequip_item(Object* item, int slot) {
+    if (Equipment* eq = dynamic_cast<Equipment*>(item)) {
+        if (equip[eq->e_area] == eq) {
+            equip[eq->e_area] = NULL;
+            eq->within = NULL;
+        }
+    } else if (Weapon* wp = dynamic_cast<Weapon*>(item)) {
+        if (hands[1] == wp && slot != 0) {
+            hands[1] = NULL;
+            wp->within = NULL;
+        } else if (hands[0] == wp) {
+            hands[0] = NULL;
+            wp->within = NULL;
+        }
+    }
+}
+
+int Humanoid::get_HIT(bool offhand) {
+    if (hands[offhand ? 1 : 0] == NULL) { return get_CMB(0); }
+    else { return get_CMB(hands[offhand ? 1 : 0]->get_type())+hands[offhand ? 1 : 0]->get_HIT(); }
+}
+
+int Humanoid::get_DMG(bool offhand) {
+    if (hands[offhand ? 1 : 0] == NULL) { return (int)max(1, (get_CMB(0)-40)/5); }
+    else { return (int)max(1, ((get_CMB(hands[offhand ? 1 : 0]->get_type())-40)/5)+hands[offhand ? 1 : 0]->get_DMG()); }
+}
+
+int Humanoid::get_CRT(bool offhand) {
+    if (hands[offhand ? 1 : 0] == NULL) { return 0; }
+    else {
+        if (hands[offhand ? 1 : 0]->get_CRT() == 0) { return 0; }
+        else { return get_CMB(hands[offhand ? 1 : 0]->get_type())+hands[offhand ? 1 : 0]->get_CRT(); }
+    }
+}
+
+int Humanoid::get_DEF(int b_part, int d_type) {
+    if (equip[b_part] != NULL) {
+        return equip[b_part]->mDEF[d_type];
+    }
+    return 0;
+}
+
+int Humanoid::get_attack_type(bool offhand) {
+    if (hands[offhand ? 1 : 0] != NULL) { return hands[offhand ? 1 : 0]->get_damage(); }
+    else { return 2; }
+}
+
+Person::Person(int d) : NPC(), Humanoid(d, 2, 1, 69, 1) {
+    // create NPC here
+    c_title = al_ustr_new("NPC");
+}
+
+int Person::get_CMB(int type) {
+    return bCMB; // TODO replace later
+}
+
+int Person::get_EVA(int b_part) {
+    return bEVA*100/max_health[b_part]; // TODO factor in weight
+}
+
+Player::Player(int i, ALLEGRO_USTR* n, int sc, int hc, int ht, int pt) : Humanoid(1, sc, hc, ht, pt) {
+    char_name = n;
+    c_title = al_ustr_new("Adventurer");
+    cXP = eXP = 0;
+    for (int i = 0; i < 18; i++) {
+        sXP[i] = 0;
+    }
+}
+
 void Player::update_player(ALLEGRO_EVENT e) {
     mov.set_to(0, 0);
     Point* origin = new Point();
     if (get_key_down(0) && !get_key_down(2)) { // UP key
         mov += *translate(origin, view_angle);
-    } else if (get_key_down(2) && !get_key_down(0)) { // DOWN key
+    } else
+    if (get_key_down(2) && !get_key_down(0)) { // DOWN key
         mov += *translate(origin, (view_angle+4)%8);
     }
     if (get_key_down(1) && !get_key_down(3)) { // LEFT key
@@ -962,7 +1288,101 @@ void Player::update_player(ALLEGRO_EVENT e) {
         mov += *translate(origin, (view_angle+6)%8);
     }
     delete origin;
-    update();
+    update(); // TODO remove later when all objects are updated every time step
+    if (mov.length() != 0) { cout << "[GAME] (Player) " << pos.x << ", " << pos.y << ", " << pos.z << "\n"; }
+}
+
+int Player::get_CMB(int type) {
+    return (int)(40+min(35.0, 0.35*sqrt(sXP[type]))+min(15.0, 0.15*sqrt(cXP)));
+}
+
+int Player::get_EVA(int b_part) {
+    return (int)(30+min(60.0, 0.6*sqrt(eXP)))*100/max_health[b_part];
+}
+
+void Player::add_CMB(int type) {
+    cout << "[GAME::Player] Adding XP to CMB for type " << type << "...\n";
+    cXP++;
+    sXP[type]++;
+}
+
+void Player::add_EVA() {
+    cout << "[GAME::Player] Adding XP to EVA...\n";
+    eXP++;
+}
+
+Action::Action(Entity* e, Object* o) {
+    actor = e;
+    obj = o;
+}
+
+void Action::update() {
+    if (time_remaining > 0) {
+        time_remaining--;
+    }
+}
+
+bool Action::can_be_executed() {
+    return ((*actor->get_position()-*obj->get_position()).length() <= max_distance);
+}
+
+Attack::Attack(Entity* e, Object* o) : Action(e, o) {
+    // TODO more here probably?
+}
+
+int Attack::execute() {
+    if (can_be_executed() && time_remaining == 0) {
+        if (Entity* ent = dynamic_cast<Entity*>(obj)) {
+            if (actor == pc) {
+                if (pc->get_hands(0) != NULL) {
+                    pc->add_CMB(pc->get_hands(0)->get_type());
+                }
+                if (pc->get_hands(1) != NULL) {
+                    pc->add_CMB(pc->get_hands(1)->get_type());
+                }
+                if (pc->get_hands(0) == NULL && pc->get_hands(1) == NULL) {
+                    pc->add_CMB(0);
+                }
+            }
+            if (Humanoid* hmnd = dynamic_cast<Humanoid*>(actor)) {
+                if (hmnd->get_hands(0) != NULL || hmnd->get_hands(1) == NULL) {
+                    make_attack(ent, false);
+                }
+                if (hmnd->get_hands(1) != NULL) {
+                    make_attack(ent, true);
+                }
+            } else {
+                make_attack(ent, false);
+            }
+        }
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void Attack::make_attack(Entity* ent, bool offhand) {
+    float p_hit = pow(max(0.32, min((actor->get_HIT(offhand)/ent->get_EVA(body_part))-0.3, 0.995)), 2);
+    cout << "[GAME::Attack] P(hit) = " << p_hit << "\n";
+    if (p_hit*1000 > rand()%1000) { // successful hit or failed dodge
+        int dmg = actor->get_DMG(offhand);
+        dmg = (dmg*19/20)+(rand()%(dmg/10));
+        dmg = max(0, dmg-ent->get_DEF(body_part, actor->get_attack_type(offhand)));
+        cout << "[GAME::Attack] HIT for " << dmg << " damage\n";
+        if (dmg > 0 && actor->get_CRT(offhand) > 0) {
+            p_hit = pow(max(0.1, min(actor->get_CRT(offhand)/(ent->get_EVA(body_part)+ent->get_DEF(body_part, actor->get_attack_type(offhand)))-0.5, 0.99)), 2);
+            cout << "[GAME::Attack] P(bleed) = " << p_hit << "\n";
+            if (p_hit*1000 > rand()%1000) {
+                // bleed damage
+                cout << "[GAME::Attack] BLEED for " << "" << " damage\n";
+            } else {
+                cout << "[GAME::Attack] NO BLEED\n";
+            }
+        }
+    } else { // failed hit or successful dodge
+        cout << "[GAME::Attack] MISS\n";
+        if (ent == pc) { pc->add_EVA(); }
+    }
 }
 
 Area::Area(int identifier) {
@@ -1073,6 +1493,7 @@ void Area::load_area() {
 bool evaluate_objects(Object* o1, Object* o2) {
     // TODO fix latter part of evaluation???
     Point* o1_pos = convert_to_screen_coordinates(*(o1->get_position())-*center);
+    if (center == NULL) { cout << "CENTER IS NULL WHAT THE FUCK\n"; }
     Point* o2_pos = convert_to_screen_coordinates(*(o2->get_position())-*center);
     bool b = *o1_pos >= *o2_pos;
     delete o1_pos;
@@ -1092,6 +1513,9 @@ bool evaluate_objects(Object* o1, Object* o2) {
 }
 
 void Area::add_object(Object* object) {
+    if (Item* item = dynamic_cast<Item*>(object)) {
+        item->remove_from_within();
+    }
     num_objects++;
     Object** temp = new Object*[num_objects];
     bool added = false;
@@ -1106,33 +1530,46 @@ void Area::add_object(Object* object) {
             temp[i] = objects[i-1];
         }
     }
-    if (Item* item = dynamic_cast<Item*>(object)) {
-        if (item->within != NULL) { item->within->remove_item(item); }
-    }
     object->set_locale(this);
     delete[] objects;
     objects = temp;
 }
 
 void Area::remove_object(Object* object) {
-    num_objects--;
-    Object** temp = new Object*[num_objects];
-    bool removed = false;
-    for (int i = 0; i < num_objects; i++) {
-        if (!removed && objects[i] == object) {
-            removed = true;
-        } else if (!removed && i == num_objects) {
-            delete[] temp;
-            return;
-        } else if (!removed) {
-            temp[i] = objects[i];
-        } else {
-            temp[i-1] = objects[i];
+    int index = find_object(object, 0, num_objects-1);
+    cout << "[GAME::Area] Remove object called for " << object << ": index of " << index << ".\n";
+    if (index >= 0) {
+        num_objects--;
+        for (int i = index; i < num_objects; i++) {
+            objects[i] = objects[i+1];
         }
+        objects[num_objects] = NULL;
+        object->set_locale(NULL);
     }
-    object->set_locale(NULL);
-    delete[] objects;
-    objects = temp;
+}
+
+int Area::find_object(Object* object, int si, int ei) {
+    Object* compare_to = objects[(si+ei)/2];
+    if (object == compare_to) {
+        return (si+ei)/2;
+    } else if (ei-si == 0) {
+        if (*(object->get_position()) == *(compare_to->get_position())) {
+            return find_object(object, si-1, ei-1);
+        } else {
+            return -1;
+        }
+    } else if (ei-si <= 1) {
+        return find_object(object, ei, ei);
+    } else if (evaluate_objects(object, compare_to)) {
+        int result = find_object(object, (si+ei)/2, ei);
+        if (result == -1 && *(object->get_position()) == *(compare_to->get_position())) {
+            return find_object(object, ((si+ei)/2)-1, ((si+ei)/2)-1);
+        } else {
+            return result;
+        }
+    } else {
+        return find_object(object, si, (si+ei)/2);
+    }
 }
 
 void Area::resort_objects() {
@@ -1200,7 +1637,7 @@ void draw_at_center() {
 
     // DRAW THE TILES OF THE TERRAIN
     Point* indices = new Point(center->x/32, center->y/32);
-    Point* offset = new Point(center->x%32, center->y%32);
+    Point* offset = new Point((int)center->x%32, (int)center->y%32);
     // if facing NW or SE, calculates offset from y=x line; else if facing SW or NE, calculates offset from y=-x line
     // then, if facing SW or SE, inverts this value
     int disx = (view_angle%4 == 3 ? offset->x-offset->y : offset->x+offset->y)*(view_angle > 4 ? 1 : -1);
@@ -1255,7 +1692,25 @@ void draw_at_center() {
 
 Object* dragging = NULL;
 Point affixation(0, 0);
+Object** drag_holder = NULL;
 ALLEGRO_USTR* mouse_desc = NULL;
+
+void evaluate_mouse_desc(ALLEGRO_EVENT e) {
+    for (int i = main_area->num_objects-1; i >= 0; i--) {
+        Point* p = convert_to_screen_coordinates(*(main_area->objects[i]->get_position())-*center);
+        if (main_area->objects[i]->get_sprite() == NULL) {
+            cout << al_cstr(main_area->objects[i]->get_name()) << "\n";
+        }
+        if (get_within_sprite(e.mouse.x, e.mouse.y, main_area->objects[i]->get_sprite(), p->x, p->y)
+                && !main_area->objects[i]->get_flag(1)) {
+            mouse_desc = main_area->objects[i]->get_name();
+            delete p;
+            return;
+        }
+        delete p;
+    }
+    mouse_desc = NULL;
+}
 
 class Window {
     public:
@@ -1266,6 +1721,10 @@ class Window {
         virtual int update_window(ALLEGRO_EVENT) = 0;
         virtual ALLEGRO_BITMAP* get_bitmap() { return get_interface_asset(1); }
         virtual void draw() = 0;
+        virtual bool get_in_bounds(int ax, int ay) {
+            ALLEGRO_BITMAP* bg = get_bitmap();
+            return (ax >= x && ax <= x+al_get_bitmap_width(bg) && ay >= y && ay <= y+al_get_bitmap_height(bg));
+        }
 };
 
 Window::Window() {
@@ -1365,34 +1824,119 @@ void DescriptionWindow::draw() {
 
 class ConversationWindow: public Window {
     private:
-        Entity* ent;
+        Person* npc;
     public:
-        ConversationWindow(Entity* e) : ent(e) { x = y = 0; }
+        ConversationWindow(Person* n) : npc(n) { x = y = 0; }
         int update_window(ALLEGRO_EVENT) { return 0; }
         void draw();
 };
 
 void ConversationWindow::draw() {
     draw_bitmap(get_bitmap(), x, y, 0);
-    ALLEGRO_BITMAP* bmp = ent->get_sprite();
+    ALLEGRO_BITMAP* bmp = npc->get_sprite();
     draw_bitmap(bmp, x+69-(al_get_bitmap_width(bmp)/2), y+25-(al_get_bitmap_height(bmp)/2),
-        (((rel_direction(ent->get_direction())+6)%8 >= 5) ? ALLEGRO_FLIP_HORIZONTAL : 0));
+        (((rel_direction(npc->get_direction())+6)%8 >= 5) ? ALLEGRO_FLIP_HORIZONTAL : 0));
 }
 
-class EquipmentWindow: public Window {
+class CharacterWindow: public Window {
     private:
         Humanoid* person;
     public:
-        EquipmentWindow(Humanoid* h) : person(h) {}
-        int update_window(ALLEGRO_EVENT) { return 0; }
+        CharacterWindow(Humanoid* h) : person(h) {}
+        ALLEGRO_BITMAP* get_bitmap() { return get_interface_asset(3); }
+        int update_window(ALLEGRO_EVENT);
         void draw();
 };
 
-void EquipmentWindow::draw() {
+void CharacterWindow::draw() {
     draw_bitmap(get_bitmap(), x, y, 0);
-    ALLEGRO_BITMAP* bmp = person->get_sprite();
+    draw_bitmap(get_portrait(0), x+33, y+16, 0);
+    draw_bitmap(person->get_port(), x+36, y+19, 0);
+    draw_ustr(person->get_name(), x+51, y+64, ALLEGRO_ALIGN_CENTER, 1);
+    draw_ustr(person->get_title(), x+51, y+75, ALLEGRO_ALIGN_CENTER, 2);
+    /* ALLEGRO_BITMAP* bmp = person->get_sprite();
     draw_bitmap(bmp, x+69-(al_get_bitmap_width(bmp)/2), y+25-(al_get_bitmap_height(bmp)/2),
         (((rel_direction(person->get_direction())+6)%8 >= 5) ? ALLEGRO_FLIP_HORIZONTAL : 0));
+        */
+    /** DRAW SKILLS **/
+    if (person == pc) {
+        draw_bitmap(get_interface_asset(10), x+21, y+86, 0);
+    } else if (Person* prs = dynamic_cast<Person*>(person)) {
+        // draw Person's main skills
+    }
+    /** DRAW HEALTH AND OTHER METERS **/
+    for (int i = 0; i < 3; i++) {
+        draw_bitmap(get_interface_asset(7+i), x+15, y+109+(10*i), 0);
+        // fill in the meters with <115, 86, 57>
+    }
+    /** DRAW EQUIPMENT **/
+    person->draw(new Point(x+133, y+61), 12);
+    for (int i = 0; i < 8; i++) {
+        Point* p = NULL;
+        if (i < 4) {
+            p = new Point(134, 46);
+            p = translate(p, (2*(i+1))%8, (i == 0 ? 27 : 29));
+        } else {
+            p = new Point(113, 27);
+            if (i == 5 || i == 6) { p = translate(p, SOUTH, 39); }
+            if (i == 6 || i == 7) { p = translate(p, EAST, 42); }
+        }
+        Equipment* eq = person->get_equip(i);
+        ALLEGRO_BITMAP* bmp = (eq != NULL ? eq->get_sprite() : get_interface_asset(2));
+        draw_bitmap(bmp, x+p->x-(al_get_bitmap_width(bmp)/2), y+p->y-(ceil(al_get_bitmap_height(bmp)/10.0)*5), 0);
+    }
+    for (int i = 0; i < 2; i++) {
+        ALLEGRO_BITMAP* bmp = (person->get_hands(i) != NULL ? person->get_hands(i)->get_sprite() : get_interface_asset(2));
+        draw_bitmap(bmp, x+113+(42*i)-(al_get_bitmap_width(bmp)/2), y+86-(al_get_bitmap_height(bmp)/2), 0);
+    }
+    /** DRAW STATS **/
+    // do that here
+    char* s = new char[4];
+    for (int i = 0; i < 4; i++) {
+        memset(&s[0], '0', sizeof(s));
+        s[0] = ' ';
+        s[3] = '\0';
+        int stb = 0;
+        switch (i) {
+            case 0:
+                stb = person->get_DMG();
+                break;
+            case 1:
+                stb = person->get_HIT();
+                break;
+            case 2:
+                stb = person->get_EVA(0);
+                break;
+            case 3:
+                stb = person->get_DEF(0, 0);
+                break;
+        }
+        itoa(stb, &s[(stb >= 100 ? 0 : (stb >= 10 ? 1 : 2))], 10);
+        // TODO fix later
+        al_draw_text(get_font(3), white, x+114+(42*(i/2)), y+110+(9*(i%2)), 0, (const char*)(s));
+    }
+    delete s;
+}
+
+class SkillsWindow: public Window {
+    public:
+        SkillsWindow() {}
+        ALLEGRO_BITMAP* get_bitmap() { return get_interface_asset(11); }
+        int update_window(ALLEGRO_EVENT);
+        void draw();
+};
+
+void SkillsWindow::draw() {
+    draw_bitmap(get_bitmap(), x, y, 0);
+    /** DRAW NAME **/
+    // TODO that^
+    /** FILL IN SKILL PROGRESS BUBBLES **/
+    // start at (42, 30)
+    // add (6, 0) for each bubble; see below for inter-skill relations
+    /** FILL IN SKILL PROGRESS BARS **/
+    // start at (39, 36)
+    // add (70, 0)*(i%2)
+    // add (0, 14)*(i/2)
 }
 
 int Object::on_click(ALLEGRO_EVENT e) {
@@ -1404,9 +1948,35 @@ int Object::on_click(ALLEGRO_EVENT e) {
     return 0;
 }
 
-int Entity::on_click(ALLEGRO_EVENT e) {
-    if (dragging == NULL || dragging == this) {
+/*int NPC::on_click(ALLEGRO_EVENT e) {
+    if (Object::on_click(e)) {
+        return 1;
+    } else {
+        // TODO insert clause for ATTACK MODE here
+    }
+    return 0;
+}*/
+
+int Person::on_click(ALLEGRO_EVENT e) {
+    // right click: followers = CharacterWindow
+    // right click: other NPC = pickpocket
+    if ((dragging == NULL || dragging == this) && e.mouse.button == 2) {
+        // TODO insert clause for only followers
+        add_window(new CharacterWindow(this));
+        return 1;
+    }
+    if (Object::on_click(e)) { // TODO fix later, I guess????
+        return 1;
+    } else if (dragging == NULL || dragging == this) {
         add_window(new ConversationWindow(this));
+        return 1;
+    }
+    return 0;
+}
+
+int Player::on_click(ALLEGRO_EVENT e) {
+    if ((dragging == NULL || dragging == this) && e.mouse.button == 2) {
+        add_window(new CharacterWindow(this));
         return 1;
     }
     return 0;
@@ -1483,9 +2053,7 @@ int update_windows(ALLEGRO_EVENT e) {
         }
     } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
         for (int i = num_windows-1; i >= 0; i--) {
-            ALLEGRO_BITMAP* bg = windows[i]->get_bitmap();
-            if (e.mouse.x >= windows[i]->x && e.mouse.x <= windows[i]->x+al_get_bitmap_width(bg)
-                && e.mouse.y >= windows[i]->y && e.mouse.y <= windows[i]->y+al_get_bitmap_height(bg)) {
+            if (windows[i]->get_in_bounds(e.mouse.x, e.mouse.y)) {
                 // pushes the window clicked to front of queue
                 Window* q = windows[i];
                 for (int j = i; j < num_windows-1; j++) { windows[j] = windows[j+1]; }
@@ -1556,23 +2124,183 @@ int ContainerWindow::update_window(ALLEGRO_EVENT e) {
             return 1;
         }
         // do stuff
+        // real specific past me thanks
         delete p;
     }
     return 0;
 }
 
-void Area::update_objects(ALLEGRO_EVENT e) {
+int CharacterWindow::update_window(ALLEGRO_EVENT e) {
     if (e.type == ALLEGRO_EVENT_MOUSE_AXES) {
-        for (int i = num_objects-1; i >= 0; i--) {
-            Point* p = convert_to_screen_coordinates(*(objects[i]->get_position())-*center);
-            if (get_within_sprite(e.mouse.x, e.mouse.y, objects[i]->get_sprite(), p->x, p->y) && !objects[i]->get_flag(1)) {
-                mouse_desc = objects[i]->get_name();
-                delete p;
-                return;
+        if (e.mouse.x >= x+14 && e.mouse.x <= x+82) {
+            if (e.mouse.y >= y+108 && e.mouse.y <= y+116) {
+                mouse_desc = description[0];
+            } else if (e.mouse.y >= y+118 && e.mouse.y <= y+126) {
+                mouse_desc = description[1];
+            } else if (e.mouse.y >= y+128 && e.mouse.y <= y+136) {
+                mouse_desc = description[2];
+            } else {
+                mouse_desc = NULL;
             }
-            delete p;
+        } else if (e.mouse.x >= x+95 && e.mouse.x <= x+173) {
+            if (e.mouse.y >= y+76 && e.mouse.y <= y+96 && (e.mouse.x < x+124 || e.mouse.x > x+144)) {
+                Weapon* hand = (e.mouse.x < x+124 ? person->get_hands(0) : person->get_hands(1));
+                if (hand != NULL) {
+                    Point* p = (e.mouse.x < x+124 ? new Point(x+113, y+86) : new Point(x+155, y+86));
+                    ALLEGRO_BITMAP* bmp = hand->get_sprite();
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = al_get_bitmap_height(bmp)/2;
+                    if (e.mouse.x >= p->x-w && e.mouse.x <= p->x+w && e.mouse.y >= p->y-h && e.mouse.y <= p->y+h) {
+                        mouse_desc = hand->get_name();
+                    } else {
+                        mouse_desc = NULL;
+                    }
+                    delete p;
+                }
+            } else if (e.mouse.y >= y+9 && e.mouse.y <= y+85) {
+                Point* p = new Point(e.mouse.x-x-134, e.mouse.y-y-46);
+                int i = (get_angle_of_vector(p)+6)%8;
+                i = ((9*(i/2))+(i%2 == 1 ? 4 : 0)) % 8;
+                delete p;
+                p = NULL;
+                if (i < 4) {
+                    p = new Point(134, 46);
+                    p = translate(p, (2*(i+1))%8, (i == 0 ? 27 : 29));
+                } else {
+                    p = new Point(113, 27);
+                    if (i == 5 || i == 6) { p = translate(p, SOUTH, 39); }
+                    if (i == 6 || i == 7) { p = translate(p, EAST, 42); }
+                }
+                Equipment* eq = person->get_equip(i);
+                if (eq != NULL) {
+                    ALLEGRO_BITMAP* bmp = eq->get_sprite();
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = ceil(al_get_bitmap_height(bmp)/10.0)*5;
+                    if (e.mouse.x >= x+p->x-w && e.mouse.x <= x+p->x+w && e.mouse.y >= y+p->y-h && e.mouse.y <= y+p->y+h) {
+                        mouse_desc = eq->get_name();
+                    } else {
+                        mouse_desc = NULL;
+                    }
+                }
+            }
+        } else {
+            mouse_desc = NULL;
         }
-        mouse_desc = NULL;
+        return 1;
+    } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+        if (e.mouse.x >= x+95 && e.mouse.x <= x+173) {
+            if (e.mouse.y >= y+76 && e.mouse.y <= y+96 && (e.mouse.x < x+124 || e.mouse.x > x+144)) {
+                Weapon* hand = (e.mouse.x < x+124 ? person->get_hands(0) : person->get_hands(1));
+                if (hand != NULL) {
+                    Point* p = (e.mouse.x < x+124 ? new Point(x+113, y+86) : new Point(x+155, y+86));
+                    ALLEGRO_BITMAP* bmp = hand->get_sprite();
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = al_get_bitmap_height(bmp)/2;
+                    if (e.mouse.x >= p->x-w && e.mouse.x <= p->x+w && e.mouse.y >= p->y-h && e.mouse.y <= p->y+h) {
+                        dragging = hand;
+                        affixation.set_to(p->x-w-e.mouse.x, p->y-h-e.mouse.y);
+                    }
+                    delete p;
+                    return 1;
+                }
+            } else if (e.mouse.y >= y+9 && e.mouse.y <= y+85) {
+                Point* p = new Point(e.mouse.x-x-134, e.mouse.y-y-46);
+                int i = (get_angle_of_vector(p)+6)%8;
+                i = ((9*(i/2))+(i%2 == 1 ? 4 : 0)) % 8;
+                delete p;
+                p = NULL;
+                if (i < 4) {
+                    p = new Point(x+134, y+46);
+                    p = translate(p, (2*(i+1))%8, (i == 0 ? 27 : 29));
+                } else {
+                    p = new Point(x+113, y+27);
+                    if (i == 5 || i == 6) { p = translate(p, SOUTH, 39); }
+                    if (i == 6 || i == 7) { p = translate(p, EAST, 42); }
+                }
+                Equipment* eq = person->get_equip(i);
+                if (eq != NULL) {
+                    ALLEGRO_BITMAP* bmp = eq->get_sprite();
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = ceil(al_get_bitmap_height(bmp)/10.0)*5;
+                    if (e.mouse.x >= p->x-w && e.mouse.x <= p->x+w && e.mouse.y >= p->y-h && e.mouse.y <= p->y+h) {
+                        dragging = eq;
+                        affixation.set_to(p->x-w-e.mouse.x, p->y-h-e.mouse.y);
+                        return 1;
+                    }
+                }
+            }
+        }
+    } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+        if (e.mouse.x >= x+21 && e.mouse.x <= x+80) {
+            if (e.mouse.y >= y+86 && e.mouse.y <= y+102){
+                add_window(new SkillsWindow());
+                return 1;
+            }
+        } else if (e.mouse.x >= x+95 && e.mouse.x <= x+173) {
+            if (dragging != NULL) {
+                if (e.mouse.y >= y+76 && e.mouse.y <= y+96 && (e.mouse.x < x+124 || e.mouse.x > x+144)) {
+                    Weapon* hand = (e.mouse.x < x+124 ? person->get_hands(0) : person->get_hands(1));
+                    Point* p = (e.mouse.x < x+124 ? new Point(x+113, y+86) : new Point(x+155, y+86));
+                    ALLEGRO_BITMAP* bmp = (hand == NULL ? get_interface_asset(2) : hand->get_sprite());
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = al_get_bitmap_height(bmp)/2;
+                    if (e.mouse.x >= p->x-w && e.mouse.x <= p->x+w && e.mouse.y >= p->y-h && e.mouse.y <= p->y+h) {
+                        person->equip_item(dragging, (e.mouse.x < x+124 ? 0 : 1));
+                    }
+                    delete p;
+                    return 1;
+                } else if (e.mouse.y >= y+9 && e.mouse.y <= y+85) {
+                    Point* p = new Point(e.mouse.x-x-134, e.mouse.y-y-46);
+                    int i = (get_angle_of_vector(p)+6)%8;
+                    i = ((9*(i/2))+(i%2 == 1 ? 4 : 0)) % 8;
+                    delete p;
+                    p = NULL;
+                    if (i < 4) {
+                        p = new Point(x+134, y+46);
+                        p = translate(p, (2*(i+1))%8, (i == 0 ? 27 : 29));
+                    } else {
+                        p = new Point(x+113, y+27);
+                        if (i == 5 || i == 6) { p = translate(p, SOUTH, 39); }
+                        if (i == 6 || i == 7) { p = translate(p, EAST, 42); }
+                    }
+                    Equipment* eq = person->get_equip(i);
+                    ALLEGRO_BITMAP* bmp = (eq != NULL ? eq->get_sprite() : get_interface_asset(2));
+                    int w = al_get_bitmap_width(bmp)/2;
+                    int h = ceil(al_get_bitmap_height(bmp)/10.0)*5;
+                    if (e.mouse.x >= p->x-w && e.mouse.x <= p->x+w && e.mouse.y >= p->y-h && e.mouse.y <= p->y+h) {
+                        person->equip_item(dragging, i);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    // TODO stuff later
+    return 0;
+}
+
+int SkillsWindow::update_window(ALLEGRO_EVENT e) {
+    if (e.type == ALLEGRO_EVENT_MOUSE_AXES) {
+        if (e.mouse.x >= x+16 && e.mouse.x <= x+74) {
+            int i = (e.mouse.y-y-26)/14;
+            if (i >= 0 && i < 9) {
+                mouse_desc = description[3+(2*i)];
+                return 1;
+            }
+        } else if (e.mouse.x >= x+86 && e.mouse.x <= x+144) {
+            int i = (e.mouse.y-y-26)/14;
+            if (i >= 0 && i < 9) {
+                mouse_desc = description[4+(2*i)];
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void Area::update_objects(ALLEGRO_EVENT e) {
+    if (e.type == ALLEGRO_EVENT_MOUSE_AXES || (e.type == ALLEGRO_EVENT_TIMER && get_any_key_down())) {
+        evaluate_mouse_desc(e);
     } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
         for (int i = num_objects-1; i >= 0; i--) {
             Point* p = convert_to_screen_coordinates(*(objects[i]->get_position())-*center);
@@ -1596,6 +2324,7 @@ void Area::update_objects(ALLEGRO_EVENT e) {
             delete p;
         }
     } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+        bool dragged = (dragging != NULL);
         for (int i = num_objects-1; i >= 0; i--) {
             Point* p = convert_to_screen_coordinates(*(objects[i]->get_position())-*center);
             if (get_within_sprite(e.mouse.x, e.mouse.y, objects[i]->get_sprite(), p->x, p->y) && !objects[i]->get_flag(1)) {
@@ -1615,6 +2344,7 @@ void Area::update_objects(ALLEGRO_EVENT e) {
             delete p;
             main_area->add_object(dragging);
         }
+        if (dragged) { cout << "[GAME:update_objects] num_objects = " << main_area->num_objects << "\n"; }
     }
 }
 
@@ -1633,7 +2363,9 @@ Object* create_object(int id) {
         case 6:
             return new Openable(id);
         case 7:
-            return new Entity(id);
+            return new Weapon(id);
+        case 100:
+            return new Person(id);
         case -1:
             return NULL;
         default:
@@ -1663,7 +2395,8 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
         } else if (e.type == ALLEGRO_EVENT_TIMER) {
             // update people and shit here
             if (!get_paused()) { pc->update_player(e); }
-            update = get_any_key_down();
+            if (get_any_key_down()) { evaluate_mouse_desc(e); }
+            update = true;
         } else {
             update = true;
             switch (update_from_event(e)) {
@@ -1708,7 +2441,7 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
             draw_at_center();
             draw_windows();
             if (get_command_line()) {
-                al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 10, 10, 0, get_input());
+                al_draw_ustr(get_font(0), al_map_rgb(255, 255, 255), 10, 10, 0, get_input());
             }
             if (dragging != NULL) {
                 draw_tinted_bitmap(dragging->get_sprite(), transparent,
@@ -1732,6 +2465,7 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
     init_game();
     add_new_input_string();
     // set_input(true);
+    int spr = get_sprite_by_id(1);
 
     int hair_color = 1;
     int hair_style = 0;
@@ -1752,80 +2486,81 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
             frame = (frame+1)%40;
             if (frame%10 == 0) { update = true; }
         } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
-            if (e.mouse.y >= 282 && e.mouse.y <= 300) {
-                if (e.mouse.x >= 229 && e.mouse.x <= 289) { // CONFIRM button
+            if (e.mouse.y >= 252 && e.mouse.y <= 272) {
+                if (e.mouse.x >= 228 && e.mouse.x <= 289) { // CONFIRM button
                     break;
-                } else if (e.mouse.x >= 349 && e.mouse.x <= 409) { // CANCEL button
+                } else if (e.mouse.x >= 349 && e.mouse.x <= 410) { // CANCEL button
                     return 1;
                 }
             } else if (e.mouse.x >= 263 && e.mouse.x <= 269) {
-                if (e.mouse.y >= 151 && e.mouse.y <= 159) { // LEFT for HAIR STYLE
+                if (e.mouse.y >= 179 && e.mouse.y <= 187) { // LEFT for HAIR STYLE
                     hair_style = (hair_style+1)%2;
-                } else if (e.mouse.y >= 167 && e.mouse.y <= 175) { // LEFT for HAIR COLOR
+                } else if (e.mouse.y >= 195 && e.mouse.y <= 203) { // LEFT for HAIR COLOR
                     hair_color = (hair_color+5)%6;
-                } else if (e.mouse.y >= 183 && e.mouse.y <= 191) { // LEFT for SKIN COLOR
+                } else if (e.mouse.y >= 211 && e.mouse.y <= 219) { // LEFT for SKIN COLOR
                     skin_color = (skin_color+3)%4;
                 }
             } else if (e.mouse.x >= 335 && e.mouse.x <= 341) {
-                if (e.mouse.y >= 151 && e.mouse.y <= 159) { // RIGHT for HAIR STYLE
+                if (e.mouse.y >= 179 && e.mouse.y <= 187) { // RIGHT for HAIR STYLE
                     hair_style = (hair_style+1)%2;
-                } else if (e.mouse.y >= 167 && e.mouse.y <= 175) { // RIGHT for HAIR COLOR
+                } else if (e.mouse.y >= 195 && e.mouse.y <= 203) { // RIGHT for HAIR COLOR
                     hair_color = (hair_color+1)%6;
-                } else if (e.mouse.y >= 183 && e.mouse.y <= 191) { // RIGHT for SKIN COLOR
+                } else if (e.mouse.y >= 211 && e.mouse.y <= 219) { // RIGHT for SKIN COLOR
                     skin_color = (skin_color+1)%4;
                 }
-            } else if (e.mouse.y >= 188 && e.mouse.y <= 197) {
+            } else if (e.mouse.y >= 217 && e.mouse.y <= 226) {
                 if (e.mouse.x >= 202 && e.mouse.x <= 213) { // ROTATE CLOCKWISE
                     dir = (dir+7)%8;
                 } else if (e.mouse.x >= 232 && e.mouse.x <= 243) { // ROTATE COUNTERCLOCKWISE
                     dir = (dir+1)%8;
                 }
-            } else if (e.mouse.y >= 167 && e.mouse.y <= 175) {
+            } else if (e.mouse.y >= 195 && e.mouse.y <= 203) {
                 if (e.mouse.x >= 376 && e.mouse.x <= 382) { // LEFT for PORTRAIT
-                    portrait_type = (portrait_type+1)%2;
+                    portrait_type = ((portrait_type+1)%2);
                 } else if (e.mouse.x >= 428 && e.mouse.x <= 434) { // RIGHT for PORTRAIT
                     portrait_type = (portrait_type+1)%2;
                 }
             }
-            if (e.mouse.x >= 191 && e.mouse.x <= 451 && e.mouse.y >= 112 && e.mouse.y <= 131) {
+            if (e.mouse.x >= 191 && e.mouse.x <= 451 && e.mouse.y >= 138 && e.mouse.y <= 160) {
                 set_input_string(1);
                 // TODO calc where to place cursor
             } else {
                 set_input_string(-1);
             }
+            update = true;
         } else {
-            update_from_event(e);
+            update = (update_from_event(e) > 0);
         }
 
         if (update) {
             al_clear_to_color(al_map_rgb(179, 152, 125));
-            al_draw_bitmap(get_interface_asset(0), 140, 80, 0);
+            al_draw_bitmap(get_interface_asset(0), 138, 106, 0);
 
-            al_draw_ustr(get_font(), al_map_rgb(255, 255, 255), 197, 117, 0, get_input(1));
+            al_draw_ustr(get_font(0), al_map_rgb(255, 255, 255), 197, 145, 0, get_input(1));
 
             //al_draw_bitmap(get_image_asset(8), 200, 200, 0);
             int d = dir;
             d = ((d <= 1 || d >= 7) ? 8-((d+6)%8) : d-2);
-            al_draw_tinted_bitmap(get_image_asset(6+(frame/10)+(4*d)), s_pigment[skin_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_tinted_bitmap(get_image_sprite(spr+(frame/10)+(4*d)), s_pigment[skin_color], 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
 
-            al_draw_bitmap(get_image_asset(146+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_bitmap(get_image_asset(126+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_sprite(get_params_by_id(7)[1]+(frame/10)+(4*d)), 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_sprite(get_params_by_id(11)[1]+(frame/10)+(4*d)), 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
 
-            al_draw_bitmap(get_image_asset(26+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_tinted_bitmap(get_image_asset(46+(40*hair_style)+(frame/10)+(4*d)), h_pigment[hair_color], 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
-            al_draw_bitmap(get_image_asset(66+(40*hair_style)+(frame/10)+(4*d)), 216, 149, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_sprite(spr+20+(frame/10)+(4*d)), 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_tinted_bitmap(get_image_sprite(spr+40+(40*hair_style)+(frame/10)+(4*d)), h_pigment[hair_color], 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
+            al_draw_bitmap(get_image_sprite(spr+60+(40*hair_style)+(frame/10)+(4*d)), 216, 177, (dir <= 1 || dir >= 7) ? ALLEGRO_FLIP_HORIZONTAL : 0);
 
-            al_draw_bitmap(get_portrait(portrait_type), 390, 153, 0);
+            al_draw_bitmap(get_portrait(portrait_type+1), 391, 182, 0);
 
             al_flip_display();
             update = false;
         }
     }
 
-    pc = new Player(rand() % 100, skin_color, hair_color, 46+(40*hair_style));
+    pc = new Player(rand() % 100, get_input(1), skin_color, hair_color, 40+(40*hair_style), portrait_type);
     cout << "[GAME] Equipping player...\n";
-    pc->equip_item(dynamic_cast<Equipment*>(create_object(7)));
-    pc->equip_item(dynamic_cast<Equipment*>(create_object(11)));
+    pc->equip_item(dynamic_cast<Equipment*>(create_object(7)), 1);
+    pc->equip_item(dynamic_cast<Equipment*>(create_object(11)), 5);
 
     set_input_string(-1);
     return run_game(events);
@@ -1834,6 +2569,6 @@ int new_game(ALLEGRO_EVENT_QUEUE* events) {
 int load_game(ALLEGRO_EVENT_QUEUE* events) {
     init_game();
 
-    pc = new Player(rand() % 100, 2, 1, 69);
+    pc = new Player(rand() % 100, al_ustr_new("Ashe"), 2, 1, 69, 1);
     return run_game(events);
 }
