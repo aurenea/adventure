@@ -6,8 +6,8 @@
 
 using namespace std;
 
-ALLEGRO_BITMAP* sprite_sheets[9];
-ALLEGRO_BITMAP* asset_sprites[160];
+ALLEGRO_BITMAP* sprite_sheets[10];
+ALLEGRO_BITMAP* asset_sprites[180];
 ALLEGRO_BITMAP* asset_tiles[4];
 ALLEGRO_BITMAP* asset_images[8];
 // I don't know why, but include an extra pointer on the end. Just go with it, the program crashes if you don't.
@@ -28,12 +28,23 @@ void load_assets() {
     sprite_sheets[6] = al_load_bitmap("lib/entities/human_hair2_overlay.png");
     sprite_sheets[7] = al_load_bitmap("lib/entities/human_shirt1.png");
     sprite_sheets[8] = al_load_bitmap("lib/entities/human_pants1.png");
-    for (int i = 0; i <= 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            for (int k = 0; k < 8; k++) {
+    sprite_sheets[9] = al_load_bitmap("lib/entities/bunny.png");
+    for (int k = 0; k < 8; k++) {
+        for (int i = 0; i <= 4; i++) {
+            for (int j = 0; j < 4; j++) {
                 // cout << "[ASSETS] <" << (20*k)+(4*i)+j << ">\n";
                 asset_sprites[(20*k)+(4*i)+j] = al_create_sub_bitmap(sprite_sheets[k+1],
                     13*((j%2) == 0 ? 0 : (j == 3 ? 2 : j)), 29*i, 13, 29);
+            }
+        }
+    }
+    for (int k = 8; k < 9; k++) {
+        int wdt = al_get_bitmap_width(sprite_sheets[k+1])/4;
+        int hgt = al_get_bitmap_height(sprite_sheets[k+1])/5;
+        for (int i = 0; i <= 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                asset_sprites[(20*k)+(4*i)+j] = al_create_sub_bitmap(sprite_sheets[k+1],
+                    wdt*j, hgt*i, wdt, hgt);
             }
         }
     }
@@ -76,7 +87,7 @@ void load_assets() {
     /** LOAD FONTS **/
     // font = al_load_font("c:/Windows/Fonts/calibri.ttf", 12, 0);
     font[0] = al_load_font("lib/font1.png", 12, 0);
-    font[1] = al_load_font("lib/font2.png", 12, 0);
+    font[1] = al_load_font("lib/font2.png", 40, 0);
     font[2] = al_load_font("lib/font3.png", 12, 0);
     font[3] = al_load_font("lib/font4.png", 12, 0);
 }

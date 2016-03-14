@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="input-manager.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="assets.cpp" open="1" top="1" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="5822" topLine="186" />
-		</Cursor>
-	</File>
-	<File name="options.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2592" topLine="80" />
-		</Cursor>
-	</File>
-	<File name="game.cpp" open="1" top="1" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="69209" topLine="2092" />
-		</Cursor>
-	</File>
-	<File name="file-io.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4178" topLine="120" />
+			<Cursor1 position="239" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="engine.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2694" topLine="54" />
+			<Cursor1 position="2694" topLine="53" />
+		</Cursor>
+	</File>
+	<File name="options.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2592" topLine="82" />
+		</Cursor>
+	</File>
+	<File name="game.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="60495" topLine="1852" />
+		</Cursor>
+	</File>
+	<File name="input-manager.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5822" topLine="187" />
+		</Cursor>
+	</File>
+	<File name="file-io.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1025" topLine="22" />
 		</Cursor>
 	</File>
 	<File name="menu.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="557" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="assets.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4122" topLine="69" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

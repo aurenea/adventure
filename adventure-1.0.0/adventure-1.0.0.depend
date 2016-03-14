@@ -60,7 +60,7 @@
 	<fstream>
 	<allegro5/allegro.h>
 
-1457479391 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\assets.cpp
+1457662221 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\assets.cpp
 	<iostream>
 	<string>
 	<allegro5/allegro5.h>
@@ -83,7 +83,7 @@
 	<iostream>
 	<allegro5/allegro.h>
 
-1457492186 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
+1457749608 source:c:\users\zach\documents\github\adventure\adventure-1.0.0\game.cpp
 	<iostream>
 	<fstream>
 	<stdlib.h>

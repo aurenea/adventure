@@ -218,7 +218,7 @@ const int WEST = 4;
 const int SOUTHWEST = 5;
 const int SOUTH = 6;
 const int SOUTHEAST = 7;
-int view_angle = SOUTHWEST;
+int view_angle = NORTHWEST;
 
 void rotate_view_clockwise() {
     view_angle = (view_angle+6)%8;
@@ -267,8 +267,8 @@ Point* convert_to_screen_coordinates(Point offset) {
 
 Point* convert_from_screen_coordinates(Point crd) {
     Point* temp = new Point(center->x, center->y, center->z);
-    temp->x += (((crd.x-320)/2)+((view_angle%4 == 1 ? -1 : 1)*(crd.y-201)))*(view_angle > 4 ? -1 : 1);
-    temp->y += ((crd.y-201)+((view_angle%4 == 3 ? -1 : 1)*(crd.x-320)/2))*(view_angle > 4 ? -1 : 1);
+    temp->x += (int)(((crd.x-320)/2)+((view_angle%4 == 1 ? -1 : 1)*(crd.y-201)))*(view_angle > 4 ? -1 : 1);
+    temp->y += (int)((crd.y-201)+((view_angle%4 == 3 ? -1 : 1)*(crd.x-320)/2))*(view_angle > 4 ? -1 : 1);
     return temp;
 }
 
@@ -294,6 +294,7 @@ class Domain {
         void set_to(Point* p, int i, int j, int k, bool e) { pos = p; dx = i; dy = j; dz = k; elliptical = e; }
         bool get_point(Point*);
         bool intersects(Domain*);
+        bool intersects(Point*, Point*);
 };
 
 bool Domain::get_point(Point* p) {
@@ -314,6 +315,34 @@ bool Domain::intersects(Domain* d) {
     }
     // cout << "D1: <" << pos->x-dx << "," << pos->y-dy << "> -> <" << pos->x+dx << "," << pos->y+dy << ">\n";
     // cout << "D2: <" << d->pos->x-d->dx << "," << d->pos->y-d->dy << "> -> <" << d->pos->x+d->dx << "," << d->pos->y+d->dy << ">\n";
+    return false;
+}
+
+bool Domain::intersects(Point* s, Point* v) {
+    float det1 = -2*dy*v->x;
+    float det2 = -2*dx*v->y;
+    Point* sVert = new Point(pos->x-dx, pos->y-dy);
+    Point* nVert = new Point(pos->x+dx, pos->y+dy);
+    // check bottom edges
+    float m = ((v->y*(s->x-sVert->x))-(v->x*(s->y-sVert->y)));
+    if (((m >= 0 && m <= det1) || (m <= 0 && m >= det1)) && det1 != 0) {
+        float n = (2*dy*(s->x-sVert->x));
+        if ((n >= 0 && n <= det1) || (n <= 0 && n >= det1)) { return true; }
+    }
+    if (((m >= 0 && m <= det2) || (m <= 0 && m >= det2)) && det2 != 0) {
+        float n = (2*dx*(s->y-sVert->y));
+        if ((n >= 0 && n <= det2) || (n <= 0 && n >= det2)) { return true; }
+    }
+    // check top edges
+    m = ((v->y*(s->x-nVert->x))-(v->x*(s->y-nVert->y)));
+    if (((m >= 0 && m <= det1) || (m <= 0 && m >= det1)) && det1 != 0) {
+        float n = (-2*dy*(s->x-sVert->x));
+        if ((n >= 0 && n <= det1) || (n <= 0 && n >= det1)) { return true; }
+    }
+    if (((m >= 0 && m <= det2) || (m <= 0 && m >= det2)) && det2 != 0) {
+        float n = (-2*dx*(s->y-sVert->y));
+        if ((n >= 0 && n <= det2) || (n <= 0 && n >= det2)) { return true; }
+    }
     return false;
 }
 
@@ -342,7 +371,6 @@ class ConversationWindow;
  */
 class Object {
     protected:
-        int id;
         int flags;
         int sprite;
         Point pos;
@@ -353,6 +381,7 @@ class Object {
         Area* loc;
         ALLEGRO_USTR* name;
     public:
+        int id;
         Object(int);
         void add_flag(int);
         void remove_flag(int);
@@ -367,7 +396,7 @@ class Object {
         ALLEGRO_USTR* get_name();
         virtual int get_sprite_flipped();
         virtual void draw();
-        void update();
+        virtual void update();
         virtual int on_click(ALLEGRO_EVENT);
         // virtual int on_click() = 0;
         virtual ALLEGRO_BITMAP* get_sprite() = 0;
@@ -495,7 +524,6 @@ class Plant: public Item {
  * Abstract class for representing people and creatures
  */
 class Entity: public Object {
-    friend class Humanoid;
     protected:
         ALLEGRO_USTR* char_name;
         float hunger;
@@ -504,12 +532,14 @@ class Entity: public Object {
         Action* action;
     public:
         int frame;
-        Entity(int d) : Object(d), frame(0) {}
+        Entity(int);
         ALLEGRO_BITMAP* get_sprite();
         virtual void update();
         ALLEGRO_USTR* get_name() { return char_name; }
         ALLEGRO_USTR* get_description();
+        void set_destination(Point*);
         void harm(int, int);
+        // virtual void evaluate_response(int);
         virtual int get_CMB(int) = 0;
         virtual int get_HIT(bool=false) = 0;
         virtual int get_DMG(bool=false) = 0;
@@ -526,7 +556,7 @@ class NPC {
     protected:
         int bCMB;
         int bEVA;
-        bool aggression;
+        float agg_response; // when HP < agg_response*MAXHP, they flee
         int hostility;
     public:
         NPC() {}
@@ -544,6 +574,8 @@ class BasicNPC: public Entity, public NPC {
     public:
         BasicNPC(int d) : Entity(d), NPC() {}
         int on_click(ALLEGRO_EVENT e) { return 0; /*NPC::on_click(e);*/ }
+        void update();
+        void evaluate_response(int);
         int get_CMB(int type) { return bCMB; }
         int get_EVA(int b_part) { return bEVA*100/max_health[b_part]; }
         int get_HIT(bool=false);
@@ -602,6 +634,7 @@ class Person: public NPC, public Humanoid {
         int personality;
     public:
         Person(int);
+        void evaluate_response(int i) {}
         int on_click(ALLEGRO_EVENT);
         int get_CMB(int);
         int get_EVA(int);
@@ -635,18 +668,33 @@ class Action {
         Object* obj;
         int max_distance;
         int time_remaining = 0; // -1 for indefinite, >0 for timed
+        bool completed;
+        Action* next_action;
     public:
-        Action(Entity*, Object*);
+        Action(Entity*, Object*, Action* = NULL);
+        Action* get_next_action() { return next_action; }
+        bool is_completed() { return completed; }
         bool can_be_executed();
-        void update();
+        virtual void update();
         virtual int execute() = 0;
+};
+
+class MoveAction: public Action {
+    protected:
+        Point* destination;
+        Point* towards;
+    public:
+        MoveAction(Entity*, Point*, Point*, Action* = NULL);
+        Point* get_direction();
+        void update();
+        int execute() {}
 };
 
 class Attack: public Action {
     protected:
         int body_part = -1;
     public:
-        Attack(Entity*, Object*);
+        Attack(Entity*, Object*, Action* = NULL);
         int execute();
         void make_attack(Entity*, bool);
 };
@@ -667,8 +715,11 @@ class Area {
         void add_object(Object*);
         void remove_object(Object*);
         int find_object(Object*, int, int);
+        int find_object_by_position(Point*, int, int);
         void resort_objects();
+        int resort_object(Object*);
         bool check_collisions(Object*, bool=true);
+        int check_route(Point*, Point*, Object*);
         void update_objects(ALLEGRO_EVENT);
 };
 
@@ -693,7 +744,7 @@ Object::Object(int d) {
     mov.set_to(0, 0);
     sprite = get_sprite_by_id(id);
     name = al_ustr_new(get_name_by_id(id));
-    dom.set_to(&pos, 3, 3, al_get_bitmap_height(get_image_asset(sprite))*3/4, false);
+    dom.set_to(&pos, 3, 3, 6, false);
     loc = NULL;
     flags = 0;
 }
@@ -779,7 +830,11 @@ void Object::update() {
                 pos -= mov;
                 mov.set_to(0, just_y);
                 pos += mov;
-                if (!loc->check_collisions(this)) { pos -= mov; }
+                if (!loc->check_collisions(this)) {
+                    pos -= mov;
+                    mov.set_to(0, 0);
+                    loc->resort_object(this);
+                }
             }
         }
     }
@@ -830,7 +885,7 @@ void Item::add_to_within(Item* thingy) {
         item_container->add_item(thingy);
         return;
     } else if (Humanoid* humanoid = dynamic_cast<Humanoid*>(within)) {
-        if (Equipment* eq = dynamic_cast<Equipment*>(thingy)) {
+        /*TODO if (Equipment* eq = dynamic_cast<Equipment*>(thingy)) {
             if (humanoid->get_equip(eq->e_area) == NULL) {
                 humanoid->equip_item(eq, eq->e_area);
                 return;
@@ -843,7 +898,7 @@ void Item::add_to_within(Item* thingy) {
                 humanoid->equip_item(wp, 1);
                 return;
             }
-        }
+        }*/
     }
     main_area->add_object(thingy);
 }
@@ -1024,7 +1079,21 @@ int Plant::harvest() {
     }
 }
 
+Entity::Entity(int d) : Object(d) {
+    frame = 0;
+    action = NULL;
+}
+
 void Entity::update() {
+    if (action != NULL) {
+        action->update();
+        if (action->is_completed()) {
+            action = action->get_next_action();
+        }
+    }
+    if (MoveAction* ma = dynamic_cast<MoveAction*>(action)) {
+        mov.set_to(ma->get_direction()->x, ma->get_direction()->y);
+    }
     Object::update();
     if (mov.x != 0 || mov.y != 0) { frame = (frame+1)%60; }
     else { frame = 0; }
@@ -1041,8 +1110,33 @@ ALLEGRO_USTR* Entity::get_description() {
     return get_desc_by_id(id);
 }
 
+void Entity::set_destination(Point* p) {
+    action = new MoveAction(this, &pos, p);
+}
+
 void Entity::harm(int body_part, int d_type) {
 
+}
+
+void BasicNPC::evaluate_response(int a_type) {
+    switch (a_type) {
+        case 0:
+            set_destination(new Point(pos.x+((40+(rand()%40))*(rand()%2 == 0 ? -1 : 1)), pos.y+((40+(rand()%40))*(rand()%2 == 0 ? -1 : 1))));
+        case 1:
+            if (max_health[0] < agg_response*max_health[0]) {
+                // run away
+            } else {
+                // fight
+            }
+            break;
+    }
+}
+
+void BasicNPC::update() {
+    if (action == NULL) {
+        evaluate_response(0);
+    }
+    Entity::update();
 }
 
 // TODO stuff with this??? maybe???????
@@ -1288,8 +1382,10 @@ void Player::update_player(ALLEGRO_EVENT e) {
         mov += *translate(origin, (view_angle+6)%8);
     }
     delete origin;
-    update(); // TODO remove later when all objects are updated every time step
-    if (mov.length() != 0) { cout << "[GAME] (Player) " << pos.x << ", " << pos.y << ", " << pos.z << "\n"; }
+    if (mov.length() != 0) {
+        action = NULL;
+        cout << "[GAME] (Player) " << pos.x << ", " << pos.y << ", " << pos.z << "\n";
+    }
 }
 
 int Player::get_CMB(int type) {
@@ -1311,9 +1407,11 @@ void Player::add_EVA() {
     eXP++;
 }
 
-Action::Action(Entity* e, Object* o) {
+Action::Action(Entity* e, Object* o, Action* n_act) {
     actor = e;
     obj = o;
+    next_action = n_act;
+    completed = false;
 }
 
 void Action::update() {
@@ -1323,10 +1421,74 @@ void Action::update() {
 }
 
 bool Action::can_be_executed() {
-    return ((*actor->get_position()-*obj->get_position()).length() <= max_distance);
+    return (obj == NULL || (*actor->get_position()-*obj->get_position()).length() <= max_distance);
 }
 
-Attack::Attack(Entity* e, Object* o) : Action(e, o) {
+MoveAction::MoveAction(Entity* e, Point* s, Point* d, Action* n_act) : Action(e, NULL) {
+    cout << "[GAME::MoveAction] d = <" << d->x << ", " << d->y << ">\n";
+    time_remaining = -1;
+    next_action = n_act;
+    destination = new Point(0, 0);
+    towards = new Point(0, 0);
+    evaluate_direction(s, d, 0);
+}
+
+void MoveAction::evaluate_direction(Point* s, Point* d, int flags) {
+    Point* v = new Point(d->x-s->x, d->y-s->y);
+    cout << "[GAME::MoveAction] v = <" << v->x << ", " << v->y << ">\n";
+    int dir = get_angle_of_vector(v);
+    cout << "[GAME::MoveAction] dir = " << dir << "\n";
+    if (v->x == 0 || v->y == 0 || abs(v->x) == abs(v->y)) {
+        destination->set_to(v->x, v->y);
+    } else if (dir % 2 == 0) {
+        if (dir == NORTH || dir == SOUTH) {
+            destination->set_to(v->x, dir == SOUTH ? abs(v->x) : -abs(v->x));
+        } else {
+            destination->set_to(dir == EAST ? abs(v->y) : -abs(v->y), v->y);
+        }
+    } else {
+        if (v->x < 0) {
+            if (v->y-v->x < 0 || v->y+v->x > 0) {
+                destination->set_to(0, (v->y-abs(v->x))*v->y/abs(v->y));
+            } else {
+                destination->set_to((v->x-abs(v->y))*v->x/abs(v->x), 0);
+            }
+        } else {
+            if (v->y-v->x > 0 || v->y+v->x < 0) {
+                destination->set_to(0, (v->y-abs(v->x))*v->y/abs(v->y));
+            } else {
+                destination->set_to((v->x-abs(v->y))*v->x/abs(v->x), 0);
+            }
+        }
+    }
+    int index = (actor->get_locale() == NULL ? -1 : actor->get_locale()->check_route(s, destination, actor));
+    if (index >= 0) {
+        if (~flags ^ 1 != 0) {
+            evaluate_direction(s, d, 1);
+        }
+    } else {
+        towards->set_to(destination->x/abs(destination->x == 0 ? 1 : destination->x),
+            destination->y/abs(destination->y == 0 ? 1 : destination->y));
+        cout << "[GAME::MoveAction] towards = <" << towards->x << ", " << towards->y << ">\n";
+        destination->set_to(destination->x+s->x, destination->y+s->y);
+        cout << "[GAME::MoveAction] destination = <" << destination->x << ", " << destination->y << ">\n";
+        next_action = (*destination == *d ? next_action : new MoveAction(actor, destination, d, next_action));
+    }
+    delete v;
+}
+
+Point* MoveAction::get_direction() {
+    return towards;
+}
+
+void MoveAction::update() {
+    Action::update();
+    if (*actor->get_position() == *destination) {
+        completed = true;
+    }
+}
+
+Attack::Attack(Entity* e, Object* o, Action* n_act) : Action(e, o, n_act) {
     // TODO more here probably?
 }
 
@@ -1537,7 +1699,7 @@ void Area::add_object(Object* object) {
 
 void Area::remove_object(Object* object) {
     int index = find_object(object, 0, num_objects-1);
-    cout << "[GAME::Area] Remove object called for " << object << ": index of " << index << ".\n";
+    // cout << "[GAME::Area] Remove object called for " << object << ": index of " << index << ".\n";
     if (index >= 0) {
         num_objects--;
         for (int i = index; i < num_objects; i++) {
@@ -1549,6 +1711,7 @@ void Area::remove_object(Object* object) {
 }
 
 int Area::find_object(Object* object, int si, int ei) {
+    // cout << "[GAME::Area] Checking from " << si << " to " << ei << "\n";
     Object* compare_to = objects[(si+ei)/2];
     if (object == compare_to) {
         return (si+ei)/2;
@@ -1569,6 +1732,25 @@ int Area::find_object(Object* object, int si, int ei) {
         }
     } else {
         return find_object(object, si, (si+ei)/2);
+    }
+}
+
+/** Finds the approximate position of the object at the point **/
+int Area::find_object_by_position(Point* p, int si, int ei) {
+    Object* compare_to = objects[(si+ei)/2];
+    if (compare_to->get_domain()->get_point(p)) {
+        return (si+ei)/2;
+    } else if (ei-si <= 0) {
+        return ei;
+    } else if (ei-si == 1) {
+        return find_object_by_position(p, ei, ei);
+    } else {
+        if (*convert_to_screen_coordinates(*p-*center) >=
+            *convert_to_screen_coordinates(*(compare_to->get_position())-*center)) {
+            return find_object_by_position(p, (si+ei)/2, ei);
+        } else {
+            return find_object_by_position(p, si, (si+ei)/2);
+        }
     }
 }
 
@@ -1595,12 +1777,74 @@ void Area::resort_objects() {
     }
 }
 
+int Area::resort_object(Object* o) {
+    int index = find_object_by_position(o->get_position(), 0, num_objects-1);
+    if (index < 0) { return -1; }
+    int i = 0;
+    while (index-i >= 0 || index+i < num_objects) {
+        if (index-i >= 0 && objects[index-i] == o) {
+            index -= i;
+            break;
+        }
+        if (index+i < num_objects && objects[index+i] == o) {
+            index += i;
+            break;
+        }
+        i++;
+    }
+    if (objects[index] == o) {
+        while (index > 0 && evaluate_objects(objects[index-1], objects[index])) {
+            objects[index] = objects[index-1];
+            objects[index-1] = o;
+            index--;
+        }
+        while (index+1 < num_objects && evaluate_objects(objects[index], objects[index+1])) {
+            objects[index] = objects[index+1];
+            objects[index+1] = o;
+            index++;
+        }
+        return index;
+    }
+    return -1;
+}
+
 /**
  * Returns false if collision detected, true if none
  */
 bool Area::check_collisions(Object* o, bool change_z) {
+    int index = resort_object(o); // find_object(o, 0, num_objects-1);
+    if (index < 0) {
+        cout << "[GAME::Area] resort_object() returned -1, collision will not be checked\n\tobject id = " << o->id << "\n";
+    }
+    int i = index-1;
     Point* pos = o->get_position();
-    for (int i = 0; i < num_objects; i++) {
+    Domain* dom = o->get_domain();
+    while ((i >= 0 && i < num_objects) && o != objects[i] && (abs(objects[i]->get_position()->x-pos->x) <= 100 ||
+           abs(objects[i]->get_position()->y-pos->y) <= 100)) {
+        // cout << "[GAME::Area] Checking for collisions at index " << i << ", id = " << objects[i]->id << "\n";
+        if (objects[i]->get_domain()->intersects(dom) && !objects[i]->get_flag(2)) {
+            if (change_z && pos->z+6 > objects[i]->get_position()->z+objects[i]->get_domain()->dz) {
+                pos->z = objects[i]->get_domain()->dz-objects[i]->get_position()->z;
+                if (check_collisions(o, false)) {
+                    return true;
+                } else {
+                    pos->z -= objects[i]->get_domain()->dz;
+                    return false;
+                }
+            } else { return false; }
+        }
+        if (i < index) {
+            i--;
+            if (i < 0 || abs(objects[i]->get_position()->x-pos->x) > 100 && abs(objects[i]->get_position()->y-pos->y) > 100) {
+                i = index+1;
+            }
+        } else {
+            i++;
+        }
+    }
+    // cout << "[GAME::Area] Termination reached at i = " << i << ", id = " << (i >= 0 && i < num_objects ? objects[i]->id : -1) << "\n";
+
+    /*for (int i = 0; i < num_objects; i++) {
         if (o != objects[i]) {
             if (o->get_domain()->intersects(objects[i]->get_domain()) && !objects[i]->get_flag(2)) {
                 if (change_z && objects[i]->get_domain()->dz < 6 && pos->z >= objects[i]->get_position()->z) {
@@ -1614,13 +1858,31 @@ bool Area::check_collisions(Object* o, bool change_z) {
                 } else { return false; }
             }
         }
-    }
+    }*/
     if (change_z && pos->z > 0) {
         int former = pos->z;
         pos->z = (pos->z-6 < 0 ? 0 : pos->z-6);
         if (!check_collisions(o)) { pos->z = former; }
     }
     return true;
+}
+
+int Area::check_route(Point* start, Point* v, Object* ignore_this) {
+    // Point* v = translate(new Point(0, 0), dir, len);
+    int index = find_object_by_position(start, 0, num_objects-1);
+    int d = rel_direction(get_angle_of_vector(v));
+    int i = index;
+    while ((i >= 0 && i < num_objects) && (abs(objects[i]->get_position()->x-start->x) <= len || abs(objects[i]->get_position()->y-start->y) <= len)) {
+        if (objects[i] != ignore_this && objects[i]->get_domain()->intersects(start, v) && !objects[i]->get_flag(2)) {
+            return i;
+        }
+        if (d > EAST && d <= WEST) {
+            i--;
+        } else {
+            i++;
+        }
+    }
+    return -1;
 }
 
 OutdoorArea::OutdoorArea(int x, int y) : Area(x+y) {
@@ -1852,8 +2114,8 @@ void CharacterWindow::draw() {
     draw_bitmap(get_bitmap(), x, y, 0);
     draw_bitmap(get_portrait(0), x+33, y+16, 0);
     draw_bitmap(person->get_port(), x+36, y+19, 0);
-    draw_ustr(person->get_name(), x+51, y+64, ALLEGRO_ALIGN_CENTER, 1);
-    draw_ustr(person->get_title(), x+51, y+75, ALLEGRO_ALIGN_CENTER, 2);
+    draw_ustr(person->get_name(), x+51, y+62, ALLEGRO_ALIGN_CENTER, 1);
+    draw_ustr(person->get_title(), x+51, y+73, ALLEGRO_ALIGN_CENTER, 2);
     /* ALLEGRO_BITMAP* bmp = person->get_sprite();
     draw_bitmap(bmp, x+69-(al_get_bitmap_width(bmp)/2), y+25-(al_get_bitmap_height(bmp)/2),
         (((rel_direction(person->get_direction())+6)%8 >= 5) ? ALLEGRO_FLIP_HORIZONTAL : 0));
@@ -2283,14 +2545,20 @@ int SkillsWindow::update_window(ALLEGRO_EVENT e) {
     if (e.type == ALLEGRO_EVENT_MOUSE_AXES) {
         if (e.mouse.x >= x+16 && e.mouse.x <= x+74) {
             int i = (e.mouse.y-y-26)/14;
-            if (i >= 0 && i < 9) {
+            if (i >= 0 && i < 9 && e.mouse.y >= y+26) {
                 mouse_desc = description[3+(2*i)];
+                return 1;
+            } else {
+                mouse_desc = NULL;
                 return 1;
             }
         } else if (e.mouse.x >= x+86 && e.mouse.x <= x+144) {
             int i = (e.mouse.y-y-26)/14;
-            if (i >= 0 && i < 9) {
+            if (i >= 0 && i < 9 && e.mouse.y >= y+26) {
                 mouse_desc = description[4+(2*i)];
+                return 1;
+            } else {
+                mouse_desc = NULL;
                 return 1;
             }
         }
@@ -2299,6 +2567,11 @@ int SkillsWindow::update_window(ALLEGRO_EVENT e) {
 }
 
 void Area::update_objects(ALLEGRO_EVENT e) {
+    if (e.type == ALLEGRO_EVENT_TIMER) {
+        for (int i = 0; i < num_objects-1; i++) {
+            objects[i]->update();
+        }
+    }
     if (e.type == ALLEGRO_EVENT_MOUSE_AXES || (e.type == ALLEGRO_EVENT_TIMER && get_any_key_down())) {
         evaluate_mouse_desc(e);
     } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
@@ -2324,7 +2597,6 @@ void Area::update_objects(ALLEGRO_EVENT e) {
             delete p;
         }
     } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
-        bool dragged = (dragging != NULL);
         for (int i = num_objects-1; i >= 0; i--) {
             Point* p = convert_to_screen_coordinates(*(objects[i]->get_position())-*center);
             if (get_within_sprite(e.mouse.x, e.mouse.y, objects[i]->get_sprite(), p->x, p->y) && !objects[i]->get_flag(1)) {
@@ -2343,8 +2615,11 @@ void Area::update_objects(ALLEGRO_EVENT e) {
             cout << "<" << dragging->get_position()->x << "," << dragging->get_position()->y << ">\n";
             delete p;
             main_area->add_object(dragging);
+        } else {
+            Point* p = new Point(e.mouse.x, e.mouse.y);
+            pc->set_destination(convert_from_screen_coordinates(*p));
+            delete p;
         }
-        if (dragged) { cout << "[GAME:update_objects] num_objects = " << main_area->num_objects << "\n"; }
     }
 }
 
@@ -2366,6 +2641,8 @@ Object* create_object(int id) {
             return new Weapon(id);
         case 100:
             return new Person(id);
+        case 101:
+            return new BasicNPC(id);
         case -1:
             return NULL;
         default:
@@ -2393,8 +2670,10 @@ int run_game(ALLEGRO_EVENT_QUEUE* events) {
             delete[] windows;
             return 0;
         } else if (e.type == ALLEGRO_EVENT_TIMER) {
-            // update people and shit here
-            if (!get_paused()) { pc->update_player(e); }
+            if (!get_paused()) {
+                pc->update_player(e);
+                main_area->update_objects(e);
+            }
             if (get_any_key_down()) { evaluate_mouse_desc(e); }
             update = true;
         } else {
