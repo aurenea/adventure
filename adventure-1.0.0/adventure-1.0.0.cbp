@@ -31,14 +31,24 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="actions.cpp" />
+		<Unit filename="actions.h" />
+		<Unit filename="areas.cpp" />
+		<Unit filename="areas.h" />
 		<Unit filename="assets.cpp" />
 		<Unit filename="engine.cpp">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="file-io.cpp" />
 		<Unit filename="game.cpp" />
+		<Unit filename="geometry.cpp" />
+		<Unit filename="geometry.h" />
 		<Unit filename="input-manager.cpp" />
+		<Unit filename="interface.cpp" />
+		<Unit filename="interface.h" />
 		<Unit filename="menu.cpp" />
+		<Unit filename="objects.cpp" />
+		<Unit filename="objects.h" />
 		<Unit filename="options.cpp" />
 		<Extensions>
 			<code_completion />

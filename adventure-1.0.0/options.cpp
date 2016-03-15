@@ -1,19 +1,15 @@
 #include <iostream>
 #include <fstream>
 #include <allegro5/allegro.h>
+#include "input-manager.h"
+#include "assets.h"
+#include "interface.h"
 
 using namespace std;
 
 int FPS = 30;
 int screen_width = 640;
 int screen_height = 400;
-
-// UP, DOWN, LEFT, RIGHT, PAUSE
-int keymap[5];
-
-// 0 to not show, 1 to show on mouse-over, 2 to show all the time
-int show_action_icon;
-int flags = 0;
 
 int get_FPS() {
     return FPS;
@@ -27,6 +23,12 @@ int get_screen_height() {
     return screen_height;
 }
 
+
+// UP, DOWN, LEFT, RIGHT, PAUSE
+int keymap[5];
+// 0 to not show, 1 to show on mouse-over, 2 to show all the time
+int show_action_icon;
+
 int get_function_of_keycode(int keycode) {
     if (keycode == ALLEGRO_KEY_ENTER) { return 5; }
     else if (keycode == ALLEGRO_KEY_F1) { return 6; }
@@ -36,14 +38,6 @@ int get_function_of_keycode(int keycode) {
         }
     }
     return -1;
-}
-
-int get_flag(int f) {
-    return ((flags & (1 << f)) != 0);
-}
-
-int set_flag(int f) {
-    flags |= (1 << f);
 }
 
 void default_options() {
@@ -99,4 +93,42 @@ void save_options() {
         output << "KeyPause = " << keymap[4] << "\n";
         output.close();
     }
+}
+
+
+
+int mode = 0;
+
+int get_paused() {
+    return ((mode & 1) != 0);
+}
+
+int get_command_line() {
+    return ((mode & 2) != 0);
+}
+
+int get_hack_mover() {
+    return ((mode & 4) != 0);
+}
+
+void toggle_pause() {
+    if (!get_paused() || get_command_line()) {
+        mode |= 1;
+        freeze_input();
+        set_overlay_color(get_color(1));
+    } else {
+        mode &= ~1;
+        unfreeze_input();
+        clear_overlay_color();
+    }
+}
+
+void toggle_command_line() {
+    mode ^= 2;
+    toggle_pause();
+    set_input_string(get_command_line() ? 0 : -1);
+}
+
+void toggle_hack_mover() {
+    mode ^= 4;
 }

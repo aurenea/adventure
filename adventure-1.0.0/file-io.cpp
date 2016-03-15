@@ -4,6 +4,8 @@
 #include <string>
 #include <cstring>
 #include <allegro5/allegro.h>
+#include "file-io.h"
+
 using namespace std;
 
 /*int* classes_by_id;

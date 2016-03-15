@@ -1,9 +1,12 @@
 #include <iostream>
 #include <allegro5/allegro.h>
+#include "input-manager.h"
 
 using namespace std;
 
 int get_function_of_keycode(int);
+
+bool input_frozen = false;
 
 bool mouse_pressed = false;
 
@@ -153,6 +156,9 @@ bool get_key_down(int key) {
     return (key_down & (1 << key)) != 0;
 }
 
+void freeze_input() { input_frozen = true; }
+void unfreeze_input() { input_frozen = false; }
+
 /*ALLEGRO_USTR* get_input(bool with_cursor) {
     if (with_cursor && al_ustr_get(input, cursor) != 124) { al_ustr_insert_chr(input, cursor, 124); }
     if (!with_cursor && al_ustr_get(input, cursor) == 124) { al_ustr_remove_chr(input, cursor); }
@@ -165,44 +171,46 @@ void set_input(bool b) {
 }*/
 
 int update_from_event(ALLEGRO_EVENT e) {
-    if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
-        mouse_pressed = true;
-    } else if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+    if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
         mouse_pressed = false;
-    } else if (e.type == ALLEGRO_EVENT_MOUSE_AXES) {
-        mouse_x = e.mouse.x;
-        mouse_y = e.mouse.y;
-    } else if (current > -1 && input_strings[current] != NULL && e.type == ALLEGRO_EVENT_KEY_CHAR) {
-        // if (al_ustr_get(input, cursor) == 124) { al_ustr_remove_chr(input, cursor); }
-        if (e.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
-            input_strings[current]->remove_at_cursor();
-            // al_ustr_remove_chr(input, --cursor);
-        } else if (e.keyboard.keycode == ALLEGRO_KEY_DELETE) {
-            input_strings[current]->remove_after_cursor();
-            // al_ustr_remove_chr(input, cursor--);
-        } else if (e.keyboard.keycode == ALLEGRO_KEY_LEFT) {
-            input_strings[current]->cursor_left();
-            // cursor = std::max(0, cursor-1);
-        } else if (e.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
-            input_strings[current]->cursor_right();
-            // cursor = std::min((int)al_ustr_length(input), cursor+1);
-        } else if (e.keyboard.unichar >= 32 && e.keyboard.unichar <= 126 && e.keyboard.unichar != 124) {
-            input_strings[current]->add_at_cursor(e.keyboard.unichar);
-            // al_ustr_insert_chr(input, cursor++, e.keyboard.unichar);
-        }
-    } else if (e.type == ALLEGRO_EVENT_KEY_DOWN) {
-        int key = get_function_of_keycode(e.keyboard.keycode);
-        if (key == 4) { return 1; } // PAUSE
-        else if (key == 5) { return 2; } // ENTER
-        else if (key == 6) { return 3; } // COMMAND LINE
-        else if (key >= 0) {
-            key_down |= (1 << key);
-        }
     } else if (e.type == ALLEGRO_EVENT_KEY_UP) {
         int key = get_function_of_keycode(e.keyboard.keycode);
         if (key >= 0) {
             key_down &= ~(1 << key);
         }
-    } else { return 0; }
+    } else if (e.type == ALLEGRO_EVENT_MOUSE_AXES) {
+        mouse_x = e.mouse.x;
+        mouse_y = e.mouse.y;
+    } else if (!input_frozen) {
+        if (e.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+            mouse_pressed = true;
+        } else if (e.type == ALLEGRO_EVENT_KEY_CHAR && current > -1 && input_strings[current] != NULL) {
+            // if (al_ustr_get(input, cursor) == 124) { al_ustr_remove_chr(input, cursor); }
+            if (e.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) {
+                input_strings[current]->remove_at_cursor();
+                // al_ustr_remove_chr(input, --cursor);
+            } else if (e.keyboard.keycode == ALLEGRO_KEY_DELETE) {
+                input_strings[current]->remove_after_cursor();
+                // al_ustr_remove_chr(input, cursor--);
+            } else if (e.keyboard.keycode == ALLEGRO_KEY_LEFT) {
+                input_strings[current]->cursor_left();
+                // cursor = std::max(0, cursor-1);
+            } else if (e.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
+                input_strings[current]->cursor_right();
+                // cursor = std::min((int)al_ustr_length(input), cursor+1);
+            } else if (e.keyboard.unichar >= 32 && e.keyboard.unichar <= 126 && e.keyboard.unichar != 124) {
+                input_strings[current]->add_at_cursor(e.keyboard.unichar);
+                // al_ustr_insert_chr(input, cursor++, e.keyboard.unichar);
+            }
+        } else if (e.type == ALLEGRO_EVENT_KEY_DOWN) {
+            int key = get_function_of_keycode(e.keyboard.keycode);
+            if (key == 4) { return 1; } // PAUSE
+            else if (key == 5) { return 2; } // ENTER
+            else if (key == 6) { return 3; } // COMMAND LINE
+            else if (key >= 0) {
+                key_down |= (1 << key);
+            }
+        } else { return 0; }
+    }
     return 4;
 }

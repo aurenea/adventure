@@ -77,6 +77,7 @@ int main() {
 
     // load images and stuff
     load_assets();
+    al_hide_mouse_cursor(display);
 
     al_start_timer(timer);
 

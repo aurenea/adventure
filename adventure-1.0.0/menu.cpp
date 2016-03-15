@@ -4,6 +4,13 @@
 int new_game(ALLEGRO_EVENT_QUEUE*);
 int load_game(ALLEGRO_EVENT_QUEUE*);
 
+int get_mouse_x();
+int get_mouse_y();
+
+void draw_menu() {
+
+}
+
 void run_menu(ALLEGRO_EVENT_QUEUE *events) {
     while (true) {
         ALLEGRO_EVENT e;
