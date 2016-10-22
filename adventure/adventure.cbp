@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="adventure" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/adventure" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DALLEGRO_STATICLINK" />
+					<Add directory="C:/devel/allegro-5.2.1.1/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-static-libgcc" />
+					<Add option="-static-libstdc++" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\static\liballegro_monolith-debug-static.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\static\liballegro_monolith-static.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\liballegro_monolith-debug.dll.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\liballegro_monolith.dll.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libdumb.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libFLAC.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libvorbisfile.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libvorbis.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libfreetype.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libogg.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libpng16.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\libzlibstatic.a" />
+					<Add library="C:\MinGW\lib\libgdiplus.a" />
+					<Add library="C:\MinGW\lib\libuuid.a" />
+					<Add library="C:\MinGW\lib\libkernel32.a" />
+					<Add library="C:\MinGW\lib\libwinmm.a" />
+					<Add library="C:\MinGW\lib\libpsapi.a" />
+					<Add library="C:\MinGW\lib\libopengl32.a" />
+					<Add library="C:\MinGW\lib\libglu32.a" />
+					<Add library="C:\MinGW\lib\libuser32.a" />
+					<Add library="C:\MinGW\lib\libcomdlg32.a" />
+					<Add library="C:\MinGW\lib\libgdi32.a" />
+					<Add library="C:\MinGW\lib\libshell32.a" />
+					<Add library="C:\MinGW\lib\libole32.a" />
+					<Add library="C:\MinGW\lib\libadvapi32.a" />
+					<Add library="C:\MinGW\lib\libws2_32.a" />
+					<Add library="C:\MinGW\lib\libshlwapi.a" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/adventure-1" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="area.cpp" />
+		<Unit filename="area.h" />
+		<Unit filename="assets.cpp" />
+		<Unit filename="assets.h" />
+		<Unit filename="drawing.cpp" />
+		<Unit filename="drawing.h" />
+		<Unit filename="engine.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="engine.h" />
+		<Unit filename="entity.h" />
+		<Unit filename="file-io.cpp" />
+		<Unit filename="file-io.h" />
+		<Unit filename="form.cpp" />
+		<Unit filename="form.h" />
+		<Unit filename="game.cpp" />
+		<Unit filename="geometry.cpp" />
+		<Unit filename="geometry.h" />
+		<Unit filename="input-manager.cpp" />
+		<Unit filename="input-manager.h" />
+		<Unit filename="input.cpp" />
+		<Unit filename="input.h" />
+		<Unit filename="interface.cpp" />
+		<Unit filename="interface.h" />
+		<Unit filename="logger.cpp" />
+		<Unit filename="logger.h" />
+		<Unit filename="lord.h" />
+		<Unit filename="object.cpp" />
+		<Unit filename="object.h" />
+		<Unit filename="objects.cpp" />
+		<Unit filename="objects.h" />
+		<Unit filename="options.cpp" />
+		<Unit filename="options.h" />
+		<Unit filename="script.cpp" />
+		<Unit filename="script.h" />
+		<Unit filename="state.cpp" />
+		<Unit filename="state.h" />
+		<Unit filename="wrapper.cpp" />
+		<Unit filename="wrapper.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
