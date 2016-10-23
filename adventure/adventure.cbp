@@ -14,8 +14,8 @@
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-g" />
-					<Add option="-std=c++11" />
 					<Add option="-std=gnu++11" />
+					<Add option="-std=c++11" />
 					<Add option="-DALLEGRO_STATICLINK" />
 					<Add directory="C:/devel/allegro-5.2.1.1/include" />
 				</Compiler>
@@ -77,6 +77,10 @@
 		<Unit filename="input.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />
+		<Unit filename="module.cpp" />
+		<Unit filename="module.h" />
+		<Unit filename="options.cpp" />
+		<Unit filename="options.h" />
 		<Unit filename="run.h" />
 		<Unit filename="state.cpp" />
 		<Unit filename="state.h" />

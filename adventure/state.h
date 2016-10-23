@@ -13,15 +13,16 @@ class State {
 protected:
     ALLEGRO_BITMAP* bg;
 
+    Options* options;
     InputController* input_controller;
     UIController* ui_controller;
 
 public:
-    State(InputController*);
-    ~State();
+    State(Options*);
+    virtual ~State();
 
     RunResult run(ALLEGRO_EVENT*);
-    virtual RunResult update_frame(ALLEGRO_EVENT*);
+    virtual RunResult update_frame();
     virtual RunResult update_event(ALLEGRO_EVENT*);
 
 };
@@ -31,7 +32,7 @@ public:
  */
 class MainMenuState : public State {
 public:
-    MainMenuState(InputController*);
+    MainMenuState();
 
 };
 
