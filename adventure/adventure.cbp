@@ -12,13 +12,18 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
+					<Add option="-std=c++11" />
+					<Add option="-std=gnu++11" />
 					<Add option="-DALLEGRO_STATICLINK" />
 					<Add directory="C:/devel/allegro-5.2.1.1/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc" />
 					<Add option="-static-libstdc++" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\liballegro_monolith-debug-static.a" />
+					<Add library="C:\devel\allegro-5.2.1.1\lib\liballegro_monolith-static.a" />
 					<Add library="C:\devel\allegro-5.2.1.1\lib\static\liballegro_monolith-debug-static.a" />
 					<Add library="C:\devel\allegro-5.2.1.1\lib\static\liballegro_monolith-static.a" />
 					<Add library="C:\devel\allegro-5.2.1.1\lib\liballegro_monolith-debug.dll.a" />
@@ -46,6 +51,7 @@
 					<Add library="C:\MinGW\lib\libadvapi32.a" />
 					<Add library="C:\MinGW\lib\libws2_32.a" />
 					<Add library="C:\MinGW\lib\libshlwapi.a" />
+					<Add directory="C:/devel/allegro-5.2.1.1/bin" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -64,45 +70,16 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="area.cpp" />
-		<Unit filename="area.h" />
-		<Unit filename="assets.cpp" />
-		<Unit filename="assets.h" />
-		<Unit filename="drawing.cpp" />
-		<Unit filename="drawing.h" />
 		<Unit filename="engine.cpp">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="engine.h" />
-		<Unit filename="entity.h" />
-		<Unit filename="file-io.cpp" />
-		<Unit filename="file-io.h" />
-		<Unit filename="form.cpp" />
-		<Unit filename="form.h" />
-		<Unit filename="game.cpp" />
-		<Unit filename="geometry.cpp" />
-		<Unit filename="geometry.h" />
-		<Unit filename="input-manager.cpp" />
-		<Unit filename="input-manager.h" />
 		<Unit filename="input.cpp" />
 		<Unit filename="input.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />
-		<Unit filename="logger.cpp" />
-		<Unit filename="logger.h" />
-		<Unit filename="lord.h" />
-		<Unit filename="object.cpp" />
-		<Unit filename="object.h" />
-		<Unit filename="objects.cpp" />
-		<Unit filename="objects.h" />
-		<Unit filename="options.cpp" />
-		<Unit filename="options.h" />
-		<Unit filename="script.cpp" />
-		<Unit filename="script.h" />
+		<Unit filename="run.h" />
 		<Unit filename="state.cpp" />
 		<Unit filename="state.h" />
-		<Unit filename="wrapper.cpp" />
-		<Unit filename="wrapper.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

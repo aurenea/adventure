@@ -1,0 +1,158 @@
+stdio    D C:\LIBS5302Build\A5211\allegro\src\file_stdio.c:105  file_stdio_fopen                 [   0.00000] opening C:\Users\Zach\Documents\GitHub\adventure\adventure\bin\Debug\allegro5.cfg r
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:771  _al_win_safe_load_library        [   0.00000] PathFindOnPath found: C:\WINDOWS\system32\shcore.dll
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:682  load_library_at_path             [   0.00000] Calling LoadLibrary C:\WINDOWS\system32\shcore.dll
+system   I C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:685  load_library_at_path             [   0.00000] Loaded C:\WINDOWS\system32\shcore.dll
+system   I C:\LIBS5302Build\A5211\allegro\src\system.c:257  al_install_system                [   0.00000] Allegro version: 5.2.1
+dtor     D C:\LIBS5302Build\A5211\allegro\src\dtor.c:196  _al_register_destructor          [   0.00509] added dtor for timer 010DDA20, func 0040A8C4
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:771  _al_win_safe_load_library        [   0.00606] PathFindOnPath found: C:\WINDOWS\system32\d3d9.dll
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:682  load_library_at_path             [   0.00612] Calling LoadLibrary C:\WINDOWS\system32\d3d9.dll
+system   I C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:685  load_library_at_path             [   0.01381] Loaded C:\WINDOWS\system32\d3d9.dll
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:674  d3d_init_display                 [   0.02920] Render-to-texture: 1
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1769 d3d_create_display_locked        [   0.03152] faux_fullscreen=0
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1770 d3d_create_display_locked        [   0.03162] al_display=010DDBC8
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1771 d3d_create_display_locked        [   0.03167] al_display->vt=010DDB10
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_display_formats.cpp:144  _al_d3d_generate_display_format_list [   0.03374] found 64 format combinations
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03385] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03395] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03400] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03407] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03411] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03417] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03421] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03427] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03432] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03437] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03442] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03447] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03460] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03487] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03494] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03500] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03547] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03553] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03558] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03564] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03568] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03574] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03578] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03584] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03588] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03594] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03598] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03604] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03608] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03612] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03615] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03619] Score is : 897
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03622] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03626] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03629] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03632] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03635] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03639] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03643] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03647] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03650] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03655] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03658] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03662] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03665] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03668] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03672] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03675] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03678] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03682] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03685] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03689] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03692] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03695] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03698] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03702] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03706] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03709] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03712] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03716] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03719] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03723] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03726] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03730] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03733] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03737] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03740] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03744] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03747] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03751] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03754] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03758] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03761] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03764] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03767] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03771] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03774] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03778] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03781] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03784] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03787] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03791] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03794] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03798] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03801] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03805] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03808] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03811] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03826] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03831] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03834] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03837] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03840] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03844] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03847] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:527  _al_score_display_settings       [   0.03851] Score is : 769
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03855] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03858] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03861] color: 32 (rgba 8880), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03865] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03868] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03872] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03875] color: 32 (rgba 8880), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03878] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03881] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03885] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03888] color: 32 (rgba 8880), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03892] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03895] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03899] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03902] color: 32 (rgba 8880), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03906] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03909] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03913] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03916] color: 16 (rgba 5650), depth: 0, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03920] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03923] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03927] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03930] color: 16 (rgba 5650), depth: 24, stencil: 8, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03934] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03937] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03940] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03943] color: 16 (rgba 5650), depth: 24, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03947] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03950] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03954] Single Buffer requirement not met.
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:212  debug_display_settings           [   0.03957] color: 16 (rgba 5650), depth: 16, stencil: 0, acc: 0000, samples: 0/0
+display  D C:\LIBS5302Build\A5211\allegro\src\display_settings.c:398  _al_score_display_settings       [   0.03961] Single Buffer requirement not met.
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1669 d3d_create_display_internals     [   0.03967] Trying format 0.
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1344 d3d_display_thread_proc          [   0.04044] Chose a display format: 23
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1413 d3d_display_thread_proc          [   0.04055] Normal window.
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:781  d3d_create_device                [   0.08576] Using no depth stencil buffer
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:839  d3d_create_device                [   0.11773] BeginScene succeeded in create_device
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:847  d3d_create_device                [   0.11785] Success
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1692 d3d_create_display_internals     [   0.11794] Resumed after wait.
+d3d      I C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1725 d3d_create_display_internals     [   0.11806] Format 0 succeeded.
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1756 d3d_create_display_internals     [   0.11821] Returning d3d_display: 010DDBC8
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1781 d3d_create_display_locked        [   0.11828] al_display=010DDBC8
+d3d      D C:\LIBS5302Build\A5211\allegro\src\win\d3d_disp.cpp:1782 d3d_create_display_locked        [   0.11833] al_display->vt=010DDB10
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:771  _al_win_safe_load_library        [   0.11957] PathFindOnPath found: C:\WINDOWS\system32\d3dx9_43.dll
+system   D C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:682  load_library_at_path             [   0.12564] Calling LoadLibrary C:\WINDOWS\system32\d3dx9_43.dll
+system   I C:\LIBS5302Build\A5211\allegro\src\win\wsystem.c:685  load_library_at_path             [   0.12815] Loaded C:\WINDOWS\system32\d3dx9_43.dll
+d3dx9    I C:\LIBS5302Build\A5211\allegro\src\win\d3d_d3dx9.cpp:88   _imp_load_d3dx9_module_version   [   0.12832] Module "d3dx9_43.dll" loaded.
+dtor     D C:\LIBS5302Build\A5211\allegro\src\dtor.c:196  _al_register_destructor          [   0.12871] added dtor for queue 010DEBD8, func 00403A17
