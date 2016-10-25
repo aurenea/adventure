@@ -73,6 +73,8 @@
 		<Unit filename="engine.cpp">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="graphics.cpp" />
+		<Unit filename="graphics.h" />
 		<Unit filename="input.cpp" />
 		<Unit filename="input.h" />
 		<Unit filename="interface.cpp" />

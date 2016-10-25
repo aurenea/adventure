@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "run.h"
+#include "graphics.h"
 #include "state.h"
 
 #include <allegro5/allegro_image.h>
@@ -95,6 +96,7 @@ void init() {
     al_register_event_source(event_queue, al_get_keyboard_event_source());
 
     al_hide_mouse_cursor(display);
+    Graphics::init();
 
     set_state(new MainMenuState());
 }
