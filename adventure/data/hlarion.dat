@@ -1,0 +1,8 @@
+dependencies {
+    // if module has dependencies on any other modules,
+    // they should be listed here
+}
+
+files {
+    objects/hla_objects.dat
+}

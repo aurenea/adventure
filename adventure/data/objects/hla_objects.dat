@@ -1,0 +1,43 @@
+type Container: class Container {}
+
+def containerFormWidget: class Widget {
+    params {
+        contX
+        contY
+    }
+    DRAG_RELEASE {
+        lord.access.add(drag, i, j)
+    }
+}
+
+def containerWindow: class AccessMenu {
+    constraints {
+        access.type == Container
+    }
+    INIT {
+        range(i, 0, access.width) {
+            range(j, 0, access.height) {
+                add(containerFormWidget(contX=i, contY=j), 10*i, 10*j)
+            }
+        }
+    }
+}
+
+type Item: class Item {
+    RIGHT_CLICK {
+        // open a window to view description and actions
+    }
+}
+
+type Container: class Container {
+    params {
+        width
+        height
+    }
+    LEFT_CLICK {
+        // open a window to view items
+    }
+    DRAG_RELEASE {
+        // add dropped object to self
+    }
+}

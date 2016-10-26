@@ -2,6 +2,7 @@
 #define MODULE_H
 
 #include <string>
+#include <allegro5/allegro.h>
 
 struct FormData {
     unsigned int hashID;
@@ -29,6 +30,8 @@ public:
     Module();
 
     FormData* get(unsigned int);
+
+    void load_module(ALLEGRO_FS_ENTRY*);
 };
 
 #endif // MODULE_H

@@ -1,0 +1,20 @@
+// id       class       sprite      name
+// 1 Item:              \0
+// 2 ItemContainer:     width       height      \0
+// 3 Plant:             harvest     \0
+// 4 Equipment:         equip area  w_sprite    \0
+// 8 Bag:               width       height      equip area  w_sprite    \0
+// 7 Weapon:            mHIT        mDMG        mCRT        type        d_type      \0
+// 5 Key:               \0
+// 6 Openable:          open_sprite \0
+// 100 Entity:          HP slots    ...         \0
+// 101 BasicNPC:        bCMB        bEVA        bDEF(B)     bDEF(P)     bDEF(S)     bDEF(F)     HP slots[9]     ...         \0
+17 7 4 "dagger" "A knife. You know, the stabby-stabby thing." 0 25 15 15 2 2
+10 2 1 "barrel" "A wooden barrel. You can use it to store other items." 0 12 6
+5 1 2 "grapes" "A bunch of tasty-looking grapes. You can eat these when you get hungry." 0
+16 5 5 "key" "A iron key. You could open some door with it." 0
+24 3 3 "wheat stalk" "A stalk of wheat. You can harvest wheat from it with a blade of some sort." 0 5
+1 100 0 "person" "Just some random weirdo."
+3 101 200 "bunny" "BUNNY" 90 40 0 0 0 0 25 10 20 20 20 20 0 0 0
+7 4 6 "shirt" "It's something you put on your body." 0 1 160
+11 4 7 "pants" "Something to cover the junk in your trunk." 0 5 180

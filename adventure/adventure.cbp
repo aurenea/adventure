@@ -84,6 +84,8 @@
 		<Unit filename="options.cpp" />
 		<Unit filename="options.h" />
 		<Unit filename="run.h" />
+		<Unit filename="script.cpp" />
+		<Unit filename="script.h" />
 		<Unit filename="state.cpp" />
 		<Unit filename="state.h" />
 		<Extensions>

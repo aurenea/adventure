@@ -60,3 +60,7 @@ FormData* Module::get(std::string formID) {
 FormData* Module::get(unsigned int index) {
     return form_data[index];
 }
+
+void Module::load_module(ALLEGRO_FS_ENTRY* filepath) {
+
+}
