@@ -1,3 +1,6 @@
+#ifndef SCRIPT_H
+#define SCRIPT_H
+
 #include <string>
 #include <vector>
 
@@ -8,6 +11,13 @@ public:
     Script(Script* s) : chain(s) {}
 
     virtual void execute();
+};
+
+class BeginScript: public Script {
+public:
+    BeginScript(Script* s) : Script(s) {}
+
+    void execute();
 };
 
 class BooleanScript: public Script {
@@ -76,3 +86,5 @@ public:
 
     void execute();
 };
+
+#endif // SCRIPT_H

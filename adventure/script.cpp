@@ -27,7 +27,11 @@ int ScriptVariableStorage::get_value(std::string key) {
             return iter->value;
         }
     }
-    return -99999;
+    std::string emessage;
+    emessage.append("Variable ");
+    emessage.append(key);
+    emessage.append(" not defined.");
+    throw emessage;
 }
 
 void ScriptVariableStorage::set_value(std::string key, int value) {
@@ -57,6 +61,14 @@ void ScriptVariableStorage::pop() {
 
 void Script::execute() {
     chain->execute();
+}
+
+void BeginScript::execute() {
+    try {
+        Script::execute();
+    } catch (std::string s) {
+        //cout << s << "\n";
+    }
 }
 
 ConditionalScript::ConditionalScript(Script* c, BooleanScript* b, Script* t, Script* f) : Script(c) {

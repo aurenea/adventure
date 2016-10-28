@@ -79,6 +79,8 @@
 		<Unit filename="input.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />
+		<Unit filename="loader.cpp" />
+		<Unit filename="loader.h" />
 		<Unit filename="module.cpp" />
 		<Unit filename="module.h" />
 		<Unit filename="options.cpp" />

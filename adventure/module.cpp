@@ -15,7 +15,7 @@ Module::Module() {
     form_data = new FormData*[10]();
 }
 
-void Module::add(FormData* data) {
+unsigned int Module::add(FormData* data) {
     unsigned int index = data_hash(data->formID, length);
     while (form_data[index] != NULL) {
         index = (index+1)%length;
@@ -23,11 +23,14 @@ void Module::add(FormData* data) {
     form_data[index] = data;
     load++;
     if (load > (unsigned int)(0.75*length)) {
-        rehash();
+        return rehash(index);
+    } else {
+        return index;
     }
 }
 
-void Module::rehash() {
+unsigned int Module::rehash(unsigned int idx) {
+    unsigned int return_value;
     unsigned int new_length = (unsigned int)(length * 1.75);
     FormData** new_data = new FormData*[new_length]();
     for (unsigned int i = 0; i < length; i++) {
@@ -37,10 +40,12 @@ void Module::rehash() {
         }
         new_data[index] = form_data[i];
         new_data[index]->hashID = index;
+        if (i == idx) { return_value = index; }
     }
     // reassign hash pointers
     delete form_data;
     form_data = new_data;
+    return return_value;
 }
 
 FormData* Module::get(std::string formID) {
@@ -61,6 +66,8 @@ FormData* Module::get(unsigned int index) {
     return form_data[index];
 }
 
-void Module::load_module(ALLEGRO_FS_ENTRY* filepath) {
+void Module::load_form_data(ALLEGRO_FS_ENTRY* filepath) {
+    ALLEGRO_FILE* file = al_open_fs_entry(filepath, "r");
+    char buffer[128];
 
 }

@@ -3,19 +3,7 @@
 
 #include <string>
 #include <allegro5/allegro.h>
-
-struct FormData {
-    unsigned int hashID;
-    std::string formID;
-    int classID;
-    int spriteID;
-
-    std::string name;
-    std::string desc;
-    int flags;
-
-    int* params;
-};
+#include "loader.h"
 
 class Module {
 private:
@@ -23,15 +11,19 @@ private:
     unsigned int load;
     FormData** form_data;
 
-    void add(FormData*);
-    void rehash();
+    unsigned int add(FormData*);
+    unsigned int rehash(unsigned int);
     FormData* get(std::string);
+
+    void load_type(ALLEGRO_FILE*);
+    void load_form(ALLEGRO_FILE*);
+    Script* load_script(ALLEGRO_FILE*);
 public:
     Module();
 
     FormData* get(unsigned int);
 
-    void load_module(ALLEGRO_FS_ENTRY*);
+    void load_form_data(ALLEGRO_FS_ENTRY*);
 };
 
 #endif // MODULE_H
