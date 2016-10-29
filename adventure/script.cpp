@@ -1,111 +1,114 @@
 #include "script.h"
 
-struct ScriptVariable {
-    std::string key;
-    int value;
-};
-
-class ScriptVariableStorage {
-private:
-    static std::vector<ScriptVariable> vars;
-
-    ScriptVariableStorage() {}
-
-public:
-    static int get_value(std::string);
-    static void set_value(std::string, int);
-    static void increment(std::string);
-    static void push(std::string, int);
-    static void pop();
-};
-
-std::vector<ScriptVariable> ScriptVariableStorage::vars;
-
-int ScriptVariableStorage::get_value(std::string key) {
-    for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter != vars.rend(); ++iter) {
-        if (iter->key.compare(key) == 0) {
-            return iter->value;
-        }
-    }
-    std::string emessage;
-    emessage.append("Variable ");
-    emessage.append(key);
-    emessage.append(" not defined.");
-    throw emessage;
-}
-
-void ScriptVariableStorage::set_value(std::string key, int value) {
-    for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter != vars.rend(); ++iter) {
-        if (iter->key.compare(key) == 0) {
-            iter->value = value;
-        }
-    }
-}
-
-void ScriptVariableStorage::increment(std::string key) {
-    for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter != vars.rend(); ++iter) {
-        if (iter->key.compare(key) == 0) {
-            iter->value++;
-        }
-    }
-}
-
-void ScriptVariableStorage::push(std::string key, int value) {
-    vars.push_back({key, value});
-}
-
-void ScriptVariableStorage::pop() {
-    vars.pop_back();
-}
-
-
 void Script::execute() {
-    chain->execute();
+    scope = 0;
+    vars.clear();
+    // try catch block
+    execute(0);
+    // end try catch
 }
 
-void BeginScript::execute() {
-    try {
-        Script::execute();
-    } catch (std::string s) {
-        //cout << s << "\n";
+unsigned int Script::execute(unsigned int index) {
+    while (chain[index] != (unsigned int)ScriptTypes::END) {
+        if (chain[index] >= (unsigned int)ScriptTypes::MAX) {
+            return var_get(chain[index]-(unsigned int)ScriptTypes::MAX);
+        } else {
+            switch ((ScriptTypes)chain[index]) {
+                case ScriptTypes::IF:
+                    if (execute(chain[index+1]) > 0) {
+                        scope++;
+                        execute(chain[index+2]);
+                    } else {
+                        scope++;
+                        execute(chain[index+3]);
+                    }
+                    decrement_scope();
+                    index = chain[index+4];
+                    break;
+                case ScriptTypes::AND:
+                    return (unsigned int)(execute(chain[index+1]) > 0 && execute(chain[index+2]) > 0);
+                case ScriptTypes::OR:
+                    return (unsigned int)(execute(chain[index+1]) > 0 || execute(chain[index+2]) > 0);
+                case ScriptTypes::NOT:
+                    return (unsigned int)(execute(chain[index+1]) == 0);
+                case ScriptTypes::EQUAL:
+                    return (unsigned int)(execute(chain[index+1]) == execute(chain[index+2]));
+                case ScriptTypes::GREATER_THAN:
+                    return (unsigned int)(execute(chain[index+1]) > execute(chain[index+2]));
+                case ScriptTypes::GREATER_EQUAL:
+                    return (unsigned int)(execute(chain[index+1]) >= execute(chain[index+2]));
+                case ScriptTypes::LESS_THAN:
+                    return (unsigned int)(execute(chain[index+1]) < execute(chain[index+2]));
+                case ScriptTypes::LESS_EQUAL:
+                    return (unsigned int)(execute(chain[index+1]) <= execute(chain[index+2]));
+                case ScriptTypes::WHILE:
+                    scope++;
+                    while (execute(chain[index+1]) > 0) {
+                        execute(chain[index+2]);
+                    }
+                    decrement_scope();
+                    index = chain[index+3];
+                    break;
+                case ScriptTypes::FOR:
+                    scope++;
+                    execute(chain[index+1]);
+                    while (execute(chain[index+2]) > 0) {
+                        execute(chain[index+4]);
+                        execute(chain[index+3]);
+                    }
+                    decrement_scope();
+                    index = chain[index+5];
+                    break;
+                case ScriptTypes::VALUE:
+                    return chain[index+1];
+                case ScriptTypes::DECLARE:
+                    vars.push_back({scope, chain[index+1]});
+                    index += 2;
+                    break;
+                case ScriptTypes::ASSIGN:
+                    var_set(chain[index+1], execute(chain[index+2]));
+                    index += 3;
+                    break;
+                default:
+                    // uh idk something fucked up
+                    break;
+            }
+        }
+    }
+    return 0;
+}
+
+void Script::decrement_scope() {
+    scope--;
+    while (vars.back().scope > scope) {
+        vars.pop_back();
     }
 }
 
-ConditionalScript::ConditionalScript(Script* c, BooleanScript* b, Script* t, Script* f) : Script(c) {
-    evaluation = b;
-    t_chain = t;
-    f_chain = f;
-}
-
-void ConditionalScript::execute() {
-    if (evaluation->evaluate()) {
-        t_chain->execute();
-    } else {
-        f_chain->execute();
+unsigned int Script::var_get(unsigned int key) {
+    for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter < vars.rend(); ++iter) {
+        if (key == (*iter).key) {
+            return (*iter).value;
+        }
     }
-    Script::execute();
+    throw std::string("Tried to access undefined variable ").append(key).append(".");
 }
 
-LoopScript::LoopScript(Script* c, Script* l) : Script(c) {
-    loop = l;
-}
-
-void LoopScript::execute() {
-    loop->execute();
-}
-
-RangeScript::RangeScript(Script* c, Script* l, std::string k, int s, int e) : LoopScript(c, l) {
-    key = k;
-    first = s;
-    last = e;
-}
-
-void RangeScript::execute() {
-    ScriptVariableStorage::push(key, first);
-    while (ScriptVariableStorage::get_value(key) < last) {
-        LoopScript::execute();
-        ScriptVariableStorage::increment(key);
+void Script::var_set(unsigned int key, unsigned int value) {
+    for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter < vars.rend(); ++iter) {
+        if (key == (*iter).key) {
+            (*iter).value = value;
+            return;
+        }
     }
-    ScriptVariableStorage::pop();
-    Script::execute();
+    throw std::string("Tried to access undefined variable ").append(key).append(".");
+}
+
+void Script::set_value(int index, unsigned int value) {
+    chain[index] = value;
+}
+
+int Script::append(unsigned int value) {
+    chain.push_back(value);
+    return chain.size()-1;
 }
