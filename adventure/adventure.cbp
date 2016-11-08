@@ -70,19 +70,30 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="area.cpp" />
+		<Unit filename="area.h" />
+		<Unit filename="data.cpp" />
+		<Unit filename="data.h" />
 		<Unit filename="engine.cpp">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="form.cpp" />
+		<Unit filename="form.h" />
+		<Unit filename="geometry.cpp" />
+		<Unit filename="geometry.h" />
 		<Unit filename="graphics.cpp" />
 		<Unit filename="graphics.h" />
 		<Unit filename="input.cpp" />
 		<Unit filename="input.h" />
+		<Unit filename="intelligence.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />
 		<Unit filename="loader.cpp" />
 		<Unit filename="loader.h" />
+		<Unit filename="lord.h" />
 		<Unit filename="module.cpp" />
 		<Unit filename="module.h" />
+		<Unit filename="object.h" />
 		<Unit filename="options.cpp" />
 		<Unit filename="options.h" />
 		<Unit filename="run.h" />
@@ -90,6 +101,8 @@
 		<Unit filename="script.h" />
 		<Unit filename="state.cpp" />
 		<Unit filename="state.h" />
+		<Unit filename="wrapper.cpp" />
+		<Unit filename="wrapper.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

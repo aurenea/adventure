@@ -1,73 +1,30 @@
-#include <cmath>
 #include "module.h"
+#include "loader.h"
 
-unsigned int data_hash(std::string formID, unsigned int value) {
-    unsigned int hashing = 0;
-    for (int i = 0; i < formID.length(); i++) {
-        hashing = (hashing + (int)((1 + (pow(value, 0.25)*i) + (pow(value, 0.33)*pow(i, 2)) + (pow(value, 0.5)*pow(i, 3))) *
-                                   pow((int)(formID[i]), 2))) % value;
-    }
-    return hashing;
+using namespace std;
+
+
+shared_ptr<Parametrized> Module::add_data(unsigned int key) {
+    shared_ptr<Parametrized> p(new Parametrized());
+    pair<unsigned int, shared_ptr<Parametrized> > q(key, p);
+    data.insert(q);
+    return p;
 }
 
-
-Module::Module() {
-    form_data = new FormData*[10]();
-}
-
-unsigned int Module::add(FormData* data) {
-    unsigned int index = data_hash(data->formID, length);
-    while (form_data[index] != NULL) {
-        index = (index+1)%length;
-    }
-    form_data[index] = data;
-    load++;
-    if (load > (unsigned int)(0.75*length)) {
-        return rehash(index);
+shared_ptr<Parametrized> Module::get_data(unsigned int key) {
+    unordered_map<unsigned int, shared_ptr<Parametrized> >::iterator iter = data.find(key);
+    if (iter == data.end()) {
+        return add_data(key);
     } else {
-        return index;
+        return iter->second;
     }
 }
 
-unsigned int Module::rehash(unsigned int idx) {
-    unsigned int return_value;
-    unsigned int new_length = (unsigned int)(length * 1.75);
-    FormData** new_data = new FormData*[new_length]();
-    for (unsigned int i = 0; i < length; i++) {
-        unsigned int index = data_hash(form_data[i]->formID, new_length);
-        while (index != NULL) {
-            index = (index+1)%new_length;
-        }
-        new_data[index] = form_data[i];
-        new_data[index]->hashID = index;
-        if (i == idx) { return_value = index; }
+void Module::load_modules(vector<ALLEGRO_FS_ENTRY*> files) {
+    FileLoader loader(this);
+    for (vector<ALLEGRO_FS_ENTRY*>::iterator iter = files.begin(); iter < files.end(); ++iter) {
+        ALLEGRO_FILE* file = al_open_fs_entry(*iter, "r");
+        loader.load(file);
+        // TODO close file
     }
-    // reassign hash pointers
-    delete form_data;
-    form_data = new_data;
-    return return_value;
-}
-
-FormData* Module::get(std::string formID) {
-    unsigned int index = data_hash(formID, length);
-    unsigned int number = 0;
-    while (number < length && form_data[index] != NULL && form_data[index]->formID.compare(formID) != 0) {
-        index = (index + 1)%length;
-        number++;
-    }
-    if (form_data[index]->formID.compare(formID) == 0) {
-        return form_data[index];
-    } else {
-        return NULL;
-    }
-}
-
-FormData* Module::get(unsigned int index) {
-    return form_data[index];
-}
-
-void Module::load_form_data(ALLEGRO_FS_ENTRY* filepath) {
-    ALLEGRO_FILE* file = al_open_fs_entry(filepath, "r");
-    char buffer[128];
-
 }

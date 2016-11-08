@@ -1,29 +1,21 @@
 #ifndef MODULE_H
 #define MODULE_H
 
-#include <string>
 #include <allegro5/allegro.h>
-#include "loader.h"
+#include <memory>
+#include <vector>
+#include <unordered_map>
+#include "data.h"
 
 class Module {
 private:
-    unsigned int length;
-    unsigned int load;
-    FormData** form_data;
+    std::unordered_map<unsigned int, std::shared_ptr<Parametrized> > data;
 
-    unsigned int add(FormData*);
-    unsigned int rehash(unsigned int);
-    FormData* get(std::string);
-
-    void load_type(ALLEGRO_FILE*);
-    void load_form(ALLEGRO_FILE*);
-    Script* load_script(ALLEGRO_FILE*);
+    std::shared_ptr<Parametrized> add_data(unsigned int);
 public:
-    Module();
+    std::shared_ptr<Parametrized> get_data(unsigned int);
 
-    FormData* get(unsigned int);
-
-    void load_form_data(ALLEGRO_FS_ENTRY*);
+    void load_modules(std::vector<ALLEGRO_FS_ENTRY*>);
 };
 
 #endif // MODULE_H

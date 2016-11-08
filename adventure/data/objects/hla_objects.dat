@@ -1,43 +1,133 @@
-type Container: class Container {}
+/**
 
-def containerFormWidget: class Widget {
-    params {
-        contX
-        contY
-    }
-    DRAG_RELEASE {
-        lord.access.add(drag, i, j)
+P R E D E F I N E D   T Y P E S
+
+VISIBLE OBJECTS
+- Form                  the basic type for anything visible, can't be used on anything
+  * fixed                   flag: can the Form change position? (default = FALSE)
+  * x                       the x-coordinate of the Form
+  * y                       the y-coordinate of the Form
+  * sprite                  the sprite for the Form, as a path
+  * lord                    the thing that contains the Form
+  # INIT                    the Script for when the Form is created
+  # LEFT_CLICK              the Script for when the Form is left-clicked
+  # RIGHT_CLICK             the Script for when the Form is right-clicked
+  # DRAG_RELEASE            the Script for when an Object is dragged onto the Form
+ - Menu(Form)           container for Widgets
+   * vassals                the Widgets in the Menu
+   # ADD                    the Script for when an outside call is made to add(Widget), returns TRUE if Widget should be added
+ - Widget(Form)         buttons, labels, stuff in a Menu
+ - Object(Form)         an actual object in the game
+  - Item(Object)        an item of some sort
+   - Container(Item)    an Item that can store other Items
+     * vassals              the Items in the Container
+     # ADD                  the Script for when an outside call is made to add(Item), returns TRUE if Item should be added
+  - Entity(Object)      an Object that has its own agency
+    * agent                 the Agent for the Entity
+   - Attired(Entity)    an Entity that can put on Items
+     * vassals              the Items on the Attired
+     # ADD                  the Script for when an outside call is made to add(Item), returns TRUE if Item should be added
+
+OTHER TYPES
+- Agent : the AI for an Entity
+
+
+P R E D E F I N E D   V A R S
+
+this                    reference to the thing (specific to thing)
+ui                      the UI, which holds all the Menus
+*drag                       DRAG_RELEASE parameter, the Object dragged onto the Form
+*addForm                    ADD parameter, the Form being added
+*addX                       ADD parameter, the x-coordinate to add the Form at
+*addY                       ADD parameter, the y-coordinate to add the Form at
+
+
+D E F I N I T I O N S
+
+type                    inherited type
+params                  parameters for creating the thing
+constraints             constraints for parameters
+scripts                 defined/overridden Scripts
+
+**/
+
+def Menu {
+    scripts {
+        ADD {
+            return TRUE;
+        }
     }
 }
 
-def containerWindow: class AccessMenu {
+def containerFormWidget {
+    type Widget
+    params {
+        contX,
+        contY
+    }
+    scripts {
+        DRAG_RELEASE {
+            lord.access.add( drag, contX, contY );
+        }
+    }
+}
+
+def containerWindow {
+    type Menu
+    params {
+        access
+    }
     constraints {
         access.type == Container
     }
-    INIT {
-        range(i, 0, access.width) {
-            range(j, 0, access.height) {
-                add(containerFormWidget(contX=i, contY=j), 10*i, 10*j)
+    scripts {
+        INIT {
+            for (i = 0; i < access.width; i++) {
+                for (j = 0; j < access.height; j++) {
+                    add( containerFormWidget( contX = i, contY = j ), 10*i, 10*j );
+                }
             }
         }
     }
 }
 
-type Item: class Item {
-    RIGHT_CLICK {
-        // open a window to view description and actions
+def Item {
+    params {
+        width,
+        height
+    }
+    scripts {
+        RIGHT_CLICK {
+            // open a window to view description and actions
+        }
     }
 }
 
-type Container: class Container {
-    params {
-        width
-        height
-    }
-    LEFT_CLICK {
-        // open a window to view items
-    }
-    DRAG_RELEASE {
-        // add dropped object to self
+def Container {
+    scripts {
+        LEFT_CLICK {
+            ui.add(containerWindow( access = this ));
+        }
+        DRAG_RELEASE {
+            for (i = 0; i < width; i++) {
+                for (j = 0; j < height; j++) {
+                    if (add(drag, i, j)) {
+                        return;
+                    }
+                }
+            }
+        }
+        ADD {
+            for (i = 0; i < vassals.length; i++) {
+                if (addX >= vassals[i].x+vassals[i].width ||
+                        addX+addForm.width <= vassals[i].x ||
+                        addY >= vassals[i].y+vassals[i].height ||
+                        addY+addForm.height <= vassals[i].y) {
+                    return FALSE;
+                }
+            }
+            return TRUE;
+        }
     }
 }
+

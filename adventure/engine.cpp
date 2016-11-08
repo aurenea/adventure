@@ -40,6 +40,8 @@ void show_error_message(const char* message) {
 
 State* state;
 
+State* get_state() { return state; }
+
 void set_state(State* s) {
     delete state;
     state = s;

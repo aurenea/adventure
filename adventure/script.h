@@ -2,83 +2,106 @@
 #define SCRIPT_H
 
 #include <string>
-#include <vector>
+#include <unordered_map>
+#include "module.h"
 
-enum class ScriptTypes : unsigned int {
-    MAX = 15,
-    END = 0,
-    IF = 1,
-    // +1   *condition
-    // +2   *true script
-    // +3   *false script
-    // +4   *next script
-    AND = 2,
-    // +1   *first condition
-    // +2   *second condition
-    OR = 3,
-    // +1   *first condition
-    // +2   *second condition
-    NOT = 4,
-    // +1   *condition
-    EQUAL = 5,
-    // +1   *first value
-    // +2   *second value
-    GREATER_THAN = 6,
-    // +1   *first value
-    // +2   *second value
-    GREATER_EQUAL = 7,
-    // +1   *first value
-    // +2   *second value
-    LESS_THAN = 8,
-    // +1   *first value
-    // +2   *second value
-    LESS_EQUAL = 9,
-    // +1   *first value
-    // +2   *second value
-    WHILE = 10,
-    // +1   *condition
-    // +2   *loop script
-    // +3   *next script
-    FOR = 11,
-    // +1   *declaration
-    // +2   *condition
-    // +3   *update
-    // +4   *loop script
-    // +5   *next script
-    VALUE = 12,
-    // +1   value
-    DECLARE = 13,
-    // +1   key
-    // +2   next script
-    ASSIGN = 14
-    // +1   var to assign to
-    // +2   value to assign
-    // +3   next script
+enum class ScriptTrigger : int {
+    INIT = 0,
+    ON_LEFT_CLICK = 1,
+    ON_RIGHT_CLICK = 2,
+    ON_DRAG_RELEASE = 3
+};
+
+enum class ScriptType : unsigned int {
+    END = 0,            // END of script
+    // OBJECTS
+    VALUE = 12,         // get constant value
+        // +1   *value
+    VARIABLE = 13,      // get value of variable
+        // +1   key
+    DECLARE = 14,       // declare a variable
+        // +1   key
+        // +2   *valuation
+    ASSIGN = 15,        // assign value to variable
+        // +1   key
+        // +2   *valuation
+    // CONTROL FLOW
+    IF = 1,             // IF control flow
+        // +1   *evaluation
+        // +2   *true subscript
+        // +3   *false subscript
+        // +4   *next subscript
+    WHILE = 10,         // WHILE control flow
+        // +1   *evaluation
+        // +2   *loop subscript
+        // +3   *next subscript
+    FOR = 11,           // FOR control flow
+        // +1   declare key
+        // +2   *declare valuation
+        // +3   *evaluation
+        // +4   *update subscript
+        // +5   *loop subscript
+        // +6   *next subscript
+    // EVALUATIONS
+    AND = 2,            // & bit operator
+        // +1   *first valuation
+        // +2   *second valuation
+    OR = 3,             // | bit operator
+        // +1   *first valuation
+        // +2   *second valuation
+    NOT = 4,            // ~ bit operator
+        // +1   *valuation
+    EQUAL = 5,          // == boolean operator
+        // +1   *first valuation
+        // +2   *second valuation
+    GREATER_THAN = 6,   // > boolean operator
+        // +1   *first valuation
+        // +2   *second valuation
+    GREATER_EQUAL = 7,  // >= boolean operator
+        // +1   *first valuation
+        // +2   *second valuation
+    LESS_THAN = 8,      // < boolean operator
+        // +1   *first valuation
+        // +2   *second valuation
+    LESS_EQUAL = 9,     // <= boolean operator
+        // +1   *first valuation
+        // +2   *second valuation
+    // VALUATIONS
+    CREATE = 16,        // create new Form
+        // +1   key to FormData
+    ADD = 17            // add Form to Lord
+        // +1   (WHERE TO ADD)
+        // +2   *valuation
 };
 
 struct ScriptVariable {
     unsigned int scope;
     unsigned int key;
-    unsigned int value;
+    void* value;
 };
 
 class Script {
 private:
+    Module* mod;
+
     std::vector<unsigned int> chain;
 
+    std::vector<void*> consts;
     std::vector<ScriptVariable> vars;
     unsigned int scope;
 
-    unsigned int var_get(unsigned int);
-    void var_set(unsigned int, unsigned int);
+    //void* var_get(unsigned int);
+    //void* var_set(unsigned int, void*);
 
-    unsigned int execute(unsigned int);
-    void decrement_scope();
+    //void* execute(unsigned int);
+    //void decrement_scope();
 public:
     Script();
 
-    void set_value(int, unsigned int);
-    int append(unsigned int);
+    //void set_value(unsigned int, unsigned int);
+    //unsigned int append(ScriptType t) { return append((unsigned int)t); }
+    //unsigned int append(unsigned int);
+    //unsigned int last_index() { return (unsigned int)chain.size(); }
 
     void execute();
 };

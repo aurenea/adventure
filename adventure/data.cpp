@@ -3,29 +3,58 @@
 
 using namespace std;
 
-void Parametrized::add_param(string key, void* value) {
-    params.insert( {{key, value}} );
+
+Parametrized::Parametrized() {
+    add_param<shared_ptr<Parametrized> >(0, shared_ptr<Parametrized>(this));
+    add_param<shared_ptr<Parametrized> >(1, nullptr);
 }
 
-void Parametrized::set_param(string key, void* value) {
-    unordered_map<string, void*>::iterator iter = params.find(key);
+template <class T>
+void Parametrized::add_param(unsigned int key, T value) {
+    shared_ptr<Param> p(new TypedParam<T>(value));
+    pair<unsigned int, shared_ptr<Param> > q(key, p);
+    params.insert(q);
+    //               {{ key, new TypedParam<T>(value) }} );
+}
+
+template <class T>
+void Parametrized::set_param(unsigned int key, T value) {
+    unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
     if (iter == params.end()) {
         add_param(key, value);
     } else {
-        iter->second = value;
+        iter->second = shared_ptr<Param>(new TypedParam<T>(value));
     }
 }
 
-void* Parametrized::get_param(string key) {
-    unordered_map<string, void*>::iterator iter = params.find(key);
+bool Parametrized::check_param(unsigned int key) {
+    unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
+    return (iter != params.end());
+}
+
+shared_ptr<Param> Parametrized::get_param(unsigned int key) {
+    unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
     if (iter == params.end()) {
-        if (inherit == NULL) {
-            throw string("Attempted to access undefined parameter ").append(key).append(".");
+        if (shared_ptr<TypedParam<shared_ptr<Parametrized> > > inherit =
+                static_pointer_cast<TypedParam<shared_ptr<Parametrized> > >(get_param(1))) {
+            return inherit->data->get_param(key);
         } else {
-            return inherit->get_param(key);
+            throw string("Attempted to access undefined parameter.");
         }
     } else {
         return iter->second;
+    }
+}
+
+template <class T>
+T Parametrized::get_param(unsigned int key) {
+    shared_ptr<Param> value = get_param(key);
+    if (value == nullptr) {
+        return nullptr;
+    } else if (shared_ptr<TypedParam<T> > typed_value = static_pointer_cast<TypedParam<T> >(value)) {
+        return typed_value->data;
+    } else {
+        throw string("Could not cast member to desired type.");
     }
 }
 
@@ -56,16 +85,32 @@ Form* FormData::create() {
 }
 */
 
-void* Article::get_param(string key) {
-    smatch match;
-    if (regex_match(key, match, regex("(.*)\.(.*)"))) {
-        void* first = get_param(match.str(1));
-        if (Parametrized* prmtrs = static_cast<Parametrized*>(first)) {
-            return prmtrs->get_param(match.str(2));
+Article::Article(Parametrized* p) {
+    set_param<shared_ptr<Parametrized> >(1, shared_ptr<Parametrized>(p));
+}
+
+
+shared_ptr<Param> Article::get_param_chain(vector<unsigned int>* keys) {
+    shared_ptr<Param> p = get_param(0);
+    for (vector<unsigned int>::iterator iter = keys->begin(); iter < keys->end(); ++iter) {
+        if (shared_ptr<TypedParam<shared_ptr<Parametrized> > > tp =
+                static_pointer_cast<TypedParam<shared_ptr<Parametrized> > >(p)) {
+            p = tp->data->get_param(*iter);
         } else {
-            throw string(match.str(1)).append(" has no parameter ").append(match.str(2)).append(".");
+            throw string("Tried to access member which does not exist.");
         }
+    }
+    return p;
+}
+
+template <class T>
+T Article::get_param_chain(vector<unsigned int>* keys) {
+    shared_ptr<Param> value = get_param_chain(keys);
+    if (value == nullptr) {
+        return nullptr;
+    } else if (shared_ptr<TypedParam<T> > typed_value = static_pointer_cast<TypedParam<T> >(value)) {
+        return typed_value->data;
     } else {
-        return Parametrized::get_param(key);
+        throw string("Could not cast member to desired type.");
     }
 }

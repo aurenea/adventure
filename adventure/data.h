@@ -1,8 +1,9 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include <memory>
 #include <unordered_map>
-#include <string>
+#include <vector>
 //#include "form.h"
 
 /*
@@ -16,15 +17,26 @@ enum class UnderlyingClassData {
 };
 */
 
+struct Param {};
+
+template <class T>
+struct TypedParam: public Param {
+    T data;
+    TypedParam(T t) : data(t) {}
+};
+
+
 class Parametrized {
 private:
-    Parametrized* inherit;
-    std::unordered_map<std::string, void*> params;
+    std::unordered_map< unsigned int, std::shared_ptr<Param> > params;
 public:
-    Parametrized(Parametrized* p) : inherit(p) {}
-    void add_param(std::string, void*);
-    void set_param(std::string, void*);
-    virtual void* get_param(std::string);
+    Parametrized();
+
+    template <class T> void add_param(unsigned int, T);
+    template <class T> void set_param(unsigned int, T);
+    bool check_param(unsigned int);
+    std::shared_ptr<Param> get_param(unsigned int);
+    template <class T> T get_param(unsigned int);
 };
 
 /*
@@ -53,8 +65,11 @@ public:
 
 class Article: public Parametrized {
 public:
-    Article(Parametrized* p) : Parametrized(p) {}
-    void* get_param(std::string);
+    Article() {}
+    Article(Parametrized*);
+
+    std::shared_ptr<Param> get_param_chain(std::vector<unsigned int>*);
+    template <class T> T get_param_chain(std::vector<unsigned int>*);
 };
 
 #endif // DATA_H
