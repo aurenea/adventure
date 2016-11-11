@@ -4,9 +4,18 @@
 #include <allegro5/allegro.h>
 #include <string>
 #include <unordered_map>
-// #include "script.h"
+
 #include "data.h"
 #include "module.h"
+#include "script.h"
+
+enum class EndStatement {
+    SEMICOLON,
+    COMMA,
+    OPEN_BRACKET,
+    CLOSE_BRACKET,
+    END_OF_FILE
+};
 
 const int FILE_LOAD_BUFFER_SIZE = 128;
 
@@ -16,17 +25,18 @@ private:
     ALLEGRO_FILE* file;
 
     std::unordered_map<std::string, unsigned int> keymap;
-    // unordered_map<std::string, void*> global_vars;
     unsigned int add_key(std::string);
     unsigned int get_key(std::string);
-    void* get_value(std::string);
 
-    char buffer[FILE_LOAD_BUFFER_SIZE];
-    int b_index;
-    int l_no;
+    std::string line;
+    int line_count;
+    EndStatement get_line();
 
-    bool add_char(std::string*);
-    char* get_char();
+    void load_define(Parametrized*);
+    void load_params(Parametrized*);
+    void load_param_assignment(Parametrized*, unsigned int, std::string);
+    void load_scripts(Parametrized*);
+    void load_script(Script*);
 
 public:
     FileLoader(Module*);

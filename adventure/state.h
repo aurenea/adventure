@@ -1,7 +1,10 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include <memory>
+
 #include <allegro5/allegro.h>
+
 #include "input.h"
 #include "interface.h"
 #include "run.h"
@@ -13,9 +16,9 @@ class State {
 protected:
     ALLEGRO_BITMAP* bg;
 
-    Options* options;
-    InputController* input_controller;
-    UIController* ui_controller;
+    std::shared_ptr<Options> options;
+    std::unique_ptr<InputController> input_controller;
+    std::unique_ptr<UIController> ui_controller;
 
 public:
     State(Options*);

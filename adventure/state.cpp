@@ -3,19 +3,16 @@
 // TODO remove test cout functions, then this include and namespace
 #include <iostream>
 
-void set_state(State*);
+void set_state(std::unique_ptr<State>);
 
 
 State::State(Options* o) {
-    options = o;
-    input_controller = new InputController(o);
-    ui_controller = new UIController(o);
+    options.reset(o);
+    input_controller.reset(new InputController(o));
+    ui_controller.reset(new UIController(o));
 }
 
 State::~State() {
-    delete ui_controller;
-    delete input_controller;
-    delete options;
     // TODO delete objects
 }
 

@@ -1,0 +1,41 @@
+def newGameButton {
+    params {
+        inherit = Widget,
+        sprite = ""
+    }
+    scripts {
+        LEFT_CLICK {
+            _NEW_GAME
+        }
+    }
+}
+
+def continueGameButton {
+    params {
+        inherit = Widget,
+        sprite = ""
+    }
+    scripts {
+        LEFT_CLICK {
+            _LOAD_GAME
+        }
+    }
+}
+
+def quitButton {
+    params {
+        inherit = Widget,
+        sprite = ""
+    }
+    scripts {
+        LEFT_CLICK {
+            _QUIT_GAME
+        }
+    }
+}
+
+INIT {
+    ui.add(newGameButton, screen_width/2, screen_height/2);
+    ui.add(continueGameButton, screen_width/2, screen_height/2);
+    ui.add(quitButton, screen_width/2, screen_height/2);
+}

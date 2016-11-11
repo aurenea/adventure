@@ -1,6 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <memory>
 #include <allegro5/allegro.h>
 #include "options.h"
 
@@ -19,9 +20,9 @@ enum class InputClass {
  */
 class InputController {
 protected:
-    bool frozen;
+    std::shared_ptr<Options> options;
 
-    Options* options;
+    bool frozen;
 
     int inputs_held;
     short int crd_left[2];

@@ -1,7 +1,5 @@
-#include "loader.h"
-
-#include <string>
 #include <regex>
+#include "loader.h"
 
 using namespace std;
 
@@ -36,281 +34,160 @@ unsigned int FileLoader::get_key(string key) {
 }
 
 
-/*
-Script* FileLoader::load_script() {
-    load_script(string(""));
-}
+void FileLoader::load_define(Parametrized* data) {
+    string params("params");
+    string scripts("scripts");
 
-Script* FileLoader::load_script(string input) {
-    char c;
-    while (c = get_char()) {
-        if (!regex_match(c, regex("\s"))) {
-            input.append(c);
-            if (regex_match(input, regex("\bif\("))) {
-                return load_conditional_script(true);
+    EndStatement ec;
+    while ((ec = get_line()) != EndStatement::END_OF_FILE) {
+        if (ec == EndStatement::CLOSE_BRACKET) { return; }
+        if (ec == EndStatement::OPEN_BRACKET) {
+            if (line.find(params) != string::npos) {
+                load_params(data);
+            } else if (line.find(scripts) != string::npos) {
+                load_scripts(data);
             }
         }
     }
+    throw string("Expected '}' before end of file.");
 }
 
-BooleanScript* load_boolean_script() {
-    string input;
-    BooleanScript* b = NULL;
-    char c;
-    while (c = get_char()) {
-        if (!regex_match(c, regex("\s"))) {
-            input.append(c);
-            if (regex_match(input, regex("\("))) {
-                if (b == NULL) {
-                    b = load_boolean_script(file, buffer);
-                    input.clear();
-                } else {
-                    throw string("Expected ")
-                }
-            } else if (regex_match(input, regex("&&"))) {
-                if (b != NULL) {
+void FileLoader::load_params(Parametrized* data) {
+    smatch match;
+    regex assignment("(\w[\w\d]*)(\s*=\s*(.*))?");
 
-                } else {
-
-                }
-                return new IntersectScript((b == NULL ? new TrueScript() : b), load_boolean_script(file, buffer));
-            } else if (regex_match(input, regex("\|\|"))) {
-                return new UnionScript((b == NULL ? new TrueScript() : b))
-            }
-            if (regex_match(input, regex("\)"))) {
-                if (b != NULL) {
-                    return b;
-                } else {
-
-                }
+    EndStatement ec;
+    while ((ec = get_line()) != EndStatement::END_OF_FILE) {
+        if (ec == EndStatement::CLOSE_BRACKET) { return; }
+        if (ec == EndStatement::COMMA) {
+            if (regex_match(line, match, assignment)) {
+                unsigned int key = get_key(match.str(1));
+                load_param_assignment(data, key, match.str(3));
             }
         }
     }
+    throw string("Expected '}' before end of file.");
 }
 
-ConditionalScript* FileLoader::load_conditional_script(bool after) {
-    BooleanScript* b = load_boolean_script();
-    Script* t = NULL;
-    Script* f = NULL;
-    string input;
-    char c;
-    while (c = get_char()) {
-        if (regex_match(c, regex("[^elsif\{\(\s]"))) {
-            return new ConditionalScript((after ? load_script(input) : NULL), b, t, f);
-        }
-        if (!regex_match(c, regex("\s"))) {
-            input.append(c);
-            if (regex_match(input, regex("^elseif\("))) {
-                f = load_conditional_script(false);
-                return new ConditionalScript((after ? load_script() : NULL), b, t, f);
-            } else if (regex_match(input, regex("^else\{"))) {
-                f = load_script();
-                return new ConditionalScript(load_script(), b, t, f);
-            } else if (regex_match(input, regex("^\{"))) {
-                t = load_script();
-                input.clear();
-            }
-        }
+void FileLoader::load_param_assignment(Parametrized* data, unsigned int key, string substring) {
+    if (substring.length() == 0) {
+        data->set_param<Param*>(key, nullptr);
+        return;
     }
-}*/
+    // do other stuff
+}
 
-/*
+void FileLoader::load_scripts(Parametrized* data) {
+    smatch match;
+    regex scr_decl("(\w[\w\d]*)");
 
-void* FileLoader::load_value(string s, unordered_map<std::string, void*> local_vars) {
-    cmatch match;
-    if (s.empty() || s.compare("null") == 0) { return NULL; }
-    if (regex_match(s, match, regex("(.+)\.(([^\(\)]+)(\(.*\))?)"))) {
-        if (TypeData* d = dynamic_cast<TypeData*>(load_value(match.str(1)))) {
-            if (match.str(4).compare(string("")) != 0) {
-                // 5 = parameters for function
+    EndStatement ec;
+    while ((ec = get_line()) != EndStatement::END_OF_FILE) {
+        if (ec == EndStatement::CLOSE_BRACKET) { return; }
+        if (ec == EndStatement::OPEN_BRACKET) {
+            if (regex_match(line, match, scr_decl)) {
+                unsigned int key = get_key(match.str(1));
+                Script* scr = new Script();
+                load_script(scr);
+                data->set_param(key, unique_ptr<Script>(scr));
             } else {
-                return d->get_param(match.str(3));
+                throw string("Expected declaration of script name.");
             }
         } else {
-            throw string(match.str(1)).append(" does not have member ").append(match.str(3)).append(".");
+            throw string("Expected declaration of script.");
         }
     }
-    unordered_map<std::string, void*>::iterator it = local_vars.find(s);
-    if (it != local_vars.end()) {
-        return it->second;
-    }
-    it = global_vars.find(s);
-    if (it != global_vars.end()) {
-        return it->second;
-    }
+    throw string("Expected '}' before end of file.");
 }
 
-unsigned int FileLoader::load_conditional(Script* s, string* str, string::iterator* iter) {
-    unsigned int r_value = 0;
-    regex or_c("\|\|");
-    regex and_c("&&");
+void FileLoader::load_script(Script* scr) {
+    smatch match;
+    regex if_decl("\bif\s*\((.*\))");
+    regex while_decl("\bwhile\s*\((.*\))");
 
-    unsigned int cnd = 0;
-    string input;
-    while (*iter < str->end()) {
-        if (**iter == '(') {
-            if (cnd > 0) { throw string("Unexpected token '('."); }
-            cnd = load_conditional(s, str, iter);
-        } else {
-            input.append(**iter);
-            ++(*iter);
-            if (regex_match(*str, or_c)) {
-                r_value = s->append(ScriptType::OR);
-                if (cnd == 0) {
-                    delete s;
-                    throw string("No first clause for '||' token.");
-                }
-                s->append(cnd);
-                unsigned int second = s->append(ScriptType::END);
-                s->set_value(second, load_conditional(s, str, iter));
-                return second;
-            } else if (regex_match(*str, and_c)) {
-                r_value = s->append(ScriptType::AND);
-                if (cnd == 0) {
-                    delete s;
-                    throw string("No first clause for '&&' token.");
-                }
-                s->append(cnd);
-                unsigned int second = s->append(ScriptType::END);
-                s->set_value(second, load_conditional(s, str, iter));
-                return second;
+    EndStatement ec;
+    while ((ec = get_line()) != EndStatement::END_OF_FILE) {
+        if (ec == EndStatement::CLOSE_BRACKET) { return; }
+        if (ec == EndStatement::OPEN_BRACKET) {
+            if (regex_match(line, match, if_decl)) {
+                //load_cond_script(scr, match.str(1));
             }
         }
     }
+    throw string("Expected '}' before end of file.");
 }
-
-unsigned int FileLoader::load_conditional(Script* s) {
-
-}
-
-unsigned int FileLoader::load_script(Script* s, unsigned int fsi) {
-    unsigned int first_index = s->last_index();
-    regex end_script("\}");
-    regex if_c("\bif\(");
-    regex else_c("\belse\{");
-    regex elseif_c("\belseif\(");
-    regex for_c("\bfor\((.*);(.*);(.*)\)\{");
-
-    string input;
-    while (add_char(&input) && !regex_match(input, end_script)) {
-        if (regex_match(input, if_c) || (regex_match(input, elseif_c) && fsi > 0)) {
-            if (fsi > 0) {
-                s->set_value(fsi, s->append(ScriptType::IF));
-                fsi = 0;
-            } else {
-                s->append(ScriptType::IF);
-            }
-            unsigned int eval = s->append(ScriptType::END);
-            unsigned int ts = s->append(ScriptType::END);
-            unsigned int fs = s->append(ScriptType::END);
-            unsigned int as = s->append(ScriptType::END);
-            input.clear();
-            s->set_value(eval, load_conditional(s));
-            if (add_char(&input) && regex_match(input, regex("\{")) {
-                s->set_value(ts, load_script(s));
-            } else {
-                delete s;
-                throw string("Expected '{', received '").append(input).append("'.");
-            }
-            s->set_value(as, load_script(s, fs));
-        } else if (regex_match(input, else_c) && fsi > 0) {
-            s->set_value(fsi, load_script(s));
-            fsi = 0;
-            first_index = s->last_index();
-        } else if regex_match(input, match, for_c) {
-
-        }
-    }
-
-    s->append(ScriptType::END);
-    return first_index;
-}*/
-
-regex whitespace("\s");
-regex definition("(.*)\{");
-regex line_end("(.*);");
-regex var_def("(\w[^=]*)(=(.+))?");
 
 void FileLoader::load(ALLEGRO_FILE* f) {
     file = f;
-    l_no = -1;
+    line_count = 0;
 
     try {
-        /*
         smatch match;
-        regex type_def("type(\w.*)");
-        regex form_def("def(\w.*)");
-        regex script_def("(\w[^=]*)=(script)?");
+        regex define("def (\w.\[\w\d]+)");
 
-        string input;
-        while (add_char(&input)) {
-            if (regex_match(input, match, definition)) {
-                smatch def_match;
-                if (regex_match(match.str(1), def_match, type_def)) {
-                    data.insert( {{ def_match.str(1), load_type() }} );
-                    input.clear();
-                } else if (regex_match(match.str(1), def_match, form_def)) {
-                    data.insert( {{ def_match.str(1), load_form() }} );
-                    input.clear();
-                } else if (regex_match(match.str(1), def_match, script_def)) {
-                    global_vars.insert( {{ def_match.str(1), load_script() }} );
-                } else {
-                    throw string("Unrecognized qualifier before '{' token.");
-                }
-            } else if (regex_match(input, match, line_end)) {
-                cmatch def_match;
-                if (regex_match(match.str(1), def_match, var_def)) {
-                    global_vars.insert( {{ def_match.str(1), load_value(def_match.str(3)) }} );
-                } else {
-                    throw string("Unrecognized line format.");
+        EndStatement ec;
+        while ((ec = get_line()) != EndStatement::END_OF_FILE) {
+            if (regex_match(line, match, define)) {
+                unsigned int key = get_key(match.str(1));
+                switch (ec) {
+                    case EndStatement::OPEN_BRACKET:
+                        load_define(module->get_data(key).get());
+                    case EndStatement::SEMICOLON:
+                        break;
+                    default:
+                        throw string("Unexpected character: expected ';' or '{'.");
                 }
             }
         }
-        */
     } catch (string s) {
         // generate error message
     }
 }
 
-bool FileLoader::add_char(string* s) {
-    if (b_index < 127 && buffer[b_index] == '/' && buffer[b_index+1] == '*') {
-        while (true) {
-            if (b_index < 127 && buffer[b_index] == '*' && buffer[b_index+1] == '/') {
-                b_index += 2;
-                break;
-            } else {
-                if (b_index >= 128 || buffer[b_index] == '\0'){
-                    if (al_fgets(file, buffer, sizeof(buffer))) {
-                        l_no++;
-                        b_index = 0;
-                    } else if (al_feof(file)) {
-                        return false;
-                    } else if (al_ferror(file)) {
-                        throw string(al_ferrmsg(file));
-                    }
-                } else {
-                    b_index++;
-                }
+EndStatement FileLoader::get_line() {
+    line.clear();
+    char c;
+    int comment = 0;
+    smatch match;
+    regex line_comment("\/\/$");
+    regex full_comment("\/\*$");
+    regex end_full_comment("\/\*.*\*\/$");
+
+    while (al_fread(file, &c, sizeof(c)) == sizeof(c)) {
+        if (c == '\n') { line_count++; }
+        if (comment == 1) {
+            if (c == '\n' && regex_match(line, match, line_comment)) {
+                line.erase(match.position(0));
             }
+        } else if (comment == 2) {
+            if (c == '/' || c == '*') { line.append(&c); }
+            if (regex_match(line, match, end_full_comment)) {
+                line.erase(match.position(0));
+            }
+        } else {
+            switch (c) {
+                case ';':
+                    return EndStatement::SEMICOLON;
+                case ',':
+                    return EndStatement::COMMA;
+                case '{':
+                    return EndStatement::OPEN_BRACKET;
+                case '}':
+                    return EndStatement::CLOSE_BRACKET;
+                case '\n':
+                    line.append(" ");
+                    break;
+                default:
+                    line.append(&c);
+                    break;
+            }
+            if (regex_match(line, line_comment)) { comment = 1; }
+            else if (regex_match(line, full_comment)) { comment = 2; }
         }
     }
-    if (b_index >= 128 || buffer[b_index] == '\0' || l_no < 0 || (b_index < 127 && buffer[b_index] == '/' && buffer[b_index+1] == '/')) {
-        if (al_fgets(file, buffer, sizeof(buffer))) {
-            l_no++;
-            b_index = 0;
-            return add_char(s);
-        } else if (al_feof(file)) {
-            return false;
-        } else if (al_ferror(file)) {
-            throw string(al_ferrmsg(file));
-        }
+    if (al_feof(file)) {
+        return EndStatement::END_OF_FILE;
     } else {
-        if (!regex_match(&buffer[b_index], whitespace)) {
-            s->append(&buffer[b_index++]);
-            return true;
-        } else {
-            b_index++;
-            return add_char(s);
-        }
+        throw string(al_ferrmsg(file));
     }
 }

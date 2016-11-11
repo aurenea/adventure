@@ -1,13 +1,14 @@
 #include <cmath>
-
-#include "run.h"
-#include "graphics.h"
-#include "state.h"
+#include <memory>
 
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_native_dialog.h>
+
+#include "run.h"
+#include "graphics.h"
+#include "state.h"
 
 
 ALLEGRO_DISPLAY* display;
@@ -38,13 +39,12 @@ void show_error_message(const char* message) {
 }
 
 
-State* state;
+std::shared_ptr<State> state;
 
-State* get_state() { return state; }
+std::shared_ptr<State> get_state() { return state; }
 
 void set_state(State* s) {
-    delete state;
-    state = s;
+    state.reset(s);
 }
 
 

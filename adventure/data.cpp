@@ -6,7 +6,7 @@ using namespace std;
 
 Parametrized::Parametrized() {
     add_param<shared_ptr<Parametrized> >(0, shared_ptr<Parametrized>(this));
-    add_param<shared_ptr<Parametrized> >(1, nullptr);
+    add_param<shared_ptr<Parametrized> >(1, shared_ptr<Parametrized>(nullptr));
 }
 
 template <class T>
@@ -14,17 +14,21 @@ void Parametrized::add_param(unsigned int key, T value) {
     shared_ptr<Param> p(new TypedParam<T>(value));
     pair<unsigned int, shared_ptr<Param> > q(key, p);
     params.insert(q);
-    //               {{ key, new TypedParam<T>(value) }} );
 }
 
-template <class T>
-void Parametrized::set_param(unsigned int key, T value) {
+template <>
+void Parametrized::set_param(unsigned int key, Param* value) {
     unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
     if (iter == params.end()) {
         add_param(key, value);
     } else {
-        iter->second = shared_ptr<Param>(new TypedParam<T>(value));
+        iter->second = shared_ptr<Param>(value);
     }
+}
+
+template <class T>
+void Parametrized::set_param(unsigned int key, T value) {
+    set_param(key, static_cast<Param*>(new TypedParam<T>(value)));
 }
 
 bool Parametrized::check_param(unsigned int key) {

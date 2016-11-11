@@ -74,6 +74,8 @@
 		<Unit filename="area.h" />
 		<Unit filename="data.cpp" />
 		<Unit filename="data.h" />
+		<Unit filename="data/main.dat" />
+		<Unit filename="data/objects/hla_objects.dat" />
 		<Unit filename="engine.cpp">
 			<Option compilerVar="CC" />
 		</Unit>

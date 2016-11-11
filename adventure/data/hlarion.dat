@@ -6,3 +6,9 @@ dependencies {
 files {
     objects/hla_objects.dat
 }
+
+options {
+    keys {
+
+    }
+}

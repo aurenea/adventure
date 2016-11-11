@@ -1,7 +1,7 @@
 #include "input.h"
 
 InputController::InputController(Options* o) {
-    options = o;
+    options.reset(o);
     inputs_held = 0;
 }
 
