@@ -54,9 +54,7 @@ public:
 
     /*unsigned int load_script(Script*);
     unsigned int load_conditional(Script*);
-
     void* load_var();
-
     FormData* load_form();*/
 
 

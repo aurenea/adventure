@@ -68,7 +68,6 @@ void FormData::execute(string key) {
         value->execute();
     }
 }
-
 Form* FormData::create() {
     switch (underlying) {
         case UnderlyingClassData::MENU:

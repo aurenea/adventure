@@ -50,7 +50,6 @@ void* Script::execute(unsigned int index) {
         }
     }
 }
-
 void* Script::valuate(unsigned int index) {
     switch ((ScriptType)chain[index]) {
         case ScriptType::VALUE:
@@ -68,14 +67,12 @@ void* Script::valuate(unsigned int index) {
         case ScriptType::ADD:
             Form* value = dynamic_cast<Form*>(valuate(chain[index+2]));
             if (value != NULL) {
-
             }
             return value;
         default:
             return NULL;
     }
 }
-
 int Script::evaluate(unsigned int index) {
     switch ((ScriptType)chain[index]) {
         case ScriptType::VALUE:
@@ -111,7 +108,6 @@ int Script::evaluate(unsigned int index) {
             return 0;
     }
 }
-
 unsigned int Script::execute(unsigned int index) {
     while (chain[index] != (unsigned int)ScriptType::END) {
         if (chain[index] >= (unsigned int)ScriptType::MAX) {
@@ -181,14 +177,12 @@ unsigned int Script::execute(unsigned int index) {
     }
     return 0;
 }
-
 void Script::decrement_scope() {
     scope--;
     while (vars.back().scope > scope) {
         vars.pop_back();
     }
 }
-
 void* Script::var_get(unsigned int key) {
     for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter < vars.rend(); ++iter) {
         if (key == (*iter).key) {
@@ -197,7 +191,6 @@ void* Script::var_get(unsigned int key) {
     }
     throw std::string("Tried to access undefined variable ").append(key).append(".");
 }
-
 void* Script::var_set(unsigned int key, void* value) {
     for (std::vector<ScriptVariable>::reverse_iterator iter = vars.rbegin(); iter < vars.rend(); ++iter) {
         if (key == (*iter).key) {
@@ -207,11 +200,9 @@ void* Script::var_set(unsigned int key, void* value) {
     }
     throw std::string("Tried to access undefined variable ").append(key).append(".");
 }
-
 void Script::set_value(unsigned int index, unsigned int value) {
     chain[index] = value;
 }
-
 unsigned int Script::append(unsigned int value) {
     chain.push_back(value);
     return last_index()-1;

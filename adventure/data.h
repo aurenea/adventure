@@ -50,7 +50,6 @@ public:
     void add_param(std::string, void*);
     void set_param(std::string, void*);
     void* get_param(std::string);
-
     virtual void* create();
 };
 */

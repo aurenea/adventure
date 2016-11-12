@@ -220,10 +220,7 @@ Object* Area::discard(Object* o) {
             }
         }
     }
-
     bool del_before =
-
-
     for (unsigned int i = last-1; i > index; i--) {
         vassals[i-1] = vassals[i];
     }
