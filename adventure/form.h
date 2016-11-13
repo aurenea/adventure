@@ -2,7 +2,7 @@
 #define FORM_H
 
 #include <string>
-#include "data.h"
+#include "param.h"
 #include "lord.h"
 #include "geometry.h"
 

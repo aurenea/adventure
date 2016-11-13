@@ -4,18 +4,6 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-//#include "form.h"
-
-/*
-enum class UnderlyingClassData {
-    MENU,
-    WIDGET,
-    ITEM,
-    CONTAINER,
-    ENTITY,
-    ATTIRED
-};
-*/
 
 struct Param {};
 
@@ -35,7 +23,6 @@ public:
     template <class T> void add_param(unsigned int, T);
     template <class T> void set_param(unsigned int, T);
     bool check_param(unsigned int);
-    std::shared_ptr<Param> get_param(unsigned int);
     template <class T> T get_param(unsigned int);
 };
 
@@ -67,7 +54,6 @@ public:
     Article() {}
     Article(Parametrized*);
 
-    std::shared_ptr<Param> get_param_chain(std::vector<unsigned int>*);
     template <class T> T get_param_chain(std::vector<unsigned int>*);
 };
 

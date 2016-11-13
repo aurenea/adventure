@@ -5,9 +5,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "data.h"
+#include "param.h"
 #include "module.h"
-#include "script.h"
+#include "scripting.h"
 
 enum class EndStatement {
     SEMICOLON,

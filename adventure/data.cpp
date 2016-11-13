@@ -17,7 +17,7 @@ void Parametrized::add_param(unsigned int key, T value) {
 }
 
 template <>
-void Parametrized::set_param(unsigned int key, Param* value) {
+void Parametrized::set_param<Param*>(unsigned int key, Param* value) {
     unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
     if (iter == params.end()) {
         add_param(key, value);
@@ -36,12 +36,13 @@ bool Parametrized::check_param(unsigned int key) {
     return (iter != params.end());
 }
 
-shared_ptr<Param> Parametrized::get_param(unsigned int key) {
+template <>
+shared_ptr<Param> Parametrized::get_param<shared_ptr<Param> >(unsigned int key) {
     unordered_map<unsigned int, shared_ptr<Param> >::iterator iter = params.find(key);
     if (iter == params.end()) {
         if (shared_ptr<TypedParam<shared_ptr<Parametrized> > > inherit =
-                static_pointer_cast<TypedParam<shared_ptr<Parametrized> > >(get_param(1))) {
-            return inherit->data->get_param(key);
+                static_pointer_cast<TypedParam<shared_ptr<Parametrized> > >(get_param<shared_ptr<Param> >(1))) {
+            return inherit->data->get_param<shared_ptr<Param> >(key);
         } else {
             throw string("Attempted to access undefined parameter.");
         }
@@ -52,7 +53,7 @@ shared_ptr<Param> Parametrized::get_param(unsigned int key) {
 
 template <class T>
 T Parametrized::get_param(unsigned int key) {
-    shared_ptr<Param> value = get_param(key);
+    shared_ptr<Param> value = get_param<shared_ptr<Param> >(key);
     if (value == nullptr) {
         return nullptr;
     } else if (shared_ptr<TypedParam<T> > typed_value = static_pointer_cast<TypedParam<T> >(value)) {
@@ -62,43 +63,18 @@ T Parametrized::get_param(unsigned int key) {
     }
 }
 
-/*
-void FormData::execute(string key) {
-    if (Script* value = dynamic_cast<Script*>(get_param(key))) {
-        value->execute();
-    }
-}
-Form* FormData::create() {
-    switch (underlying) {
-        case UnderlyingClassData::MENU:
-            return new Menu(this);
-        case UnderlyingClassData::WIDGET:
-            return new Widget(this);
-        case UnderlyingClassData::ITEM:
-            return new Item(this);
-        case UnderlyingClassData::CONTAINER:
-            return new Container(this);
-        case UnderlyingClassData::ENTITY:
-            return new Entity(this);
-        case UnderlyingClassData::ATTIRED:
-            return new Attired(this);
-        default:
-            throw string("FormData does not have proper underlying class type.");
-    }
-}
-*/
 
 Article::Article(Parametrized* p) {
     set_param<shared_ptr<Parametrized> >(1, shared_ptr<Parametrized>(p));
 }
 
-
-shared_ptr<Param> Article::get_param_chain(vector<unsigned int>* keys) {
-    shared_ptr<Param> p = get_param(0);
+template <>
+shared_ptr<Param> Article::get_param_chain<shared_ptr<Param> >(vector<unsigned int>* keys) {
+    shared_ptr<Param> p = get_param<shared_ptr<Param> >(0);
     for (vector<unsigned int>::iterator iter = keys->begin(); iter < keys->end(); ++iter) {
         if (shared_ptr<TypedParam<shared_ptr<Parametrized> > > tp =
                 static_pointer_cast<TypedParam<shared_ptr<Parametrized> > >(p)) {
-            p = tp->data->get_param(*iter);
+            p = tp->data->get_param<shared_ptr<Param> >(*iter);
         } else {
             throw string("Tried to access member which does not exist.");
         }
@@ -108,7 +84,7 @@ shared_ptr<Param> Article::get_param_chain(vector<unsigned int>* keys) {
 
 template <class T>
 T Article::get_param_chain(vector<unsigned int>* keys) {
-    shared_ptr<Param> value = get_param_chain(keys);
+    shared_ptr<Param> value = get_param_chain<shared_ptr<Param> >(keys);
     if (value == nullptr) {
         return nullptr;
     } else if (shared_ptr<TypedParam<T> > typed_value = static_pointer_cast<TypedParam<T> >(value)) {

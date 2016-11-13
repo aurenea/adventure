@@ -1,6 +1,7 @@
 #include <memory>
+#include "param.h"
 #include "form.h"
-#include "script.h"
+#include "scripting.h"
 
 Form::Form(Parametrized* p) : Article(p) {
     shape.center = &pos;

@@ -89,7 +89,7 @@ void FileLoader::load_scripts(Parametrized* data) {
                 unsigned int key = get_key(match.str(1));
                 Script* scr = new Script();
                 load_script(scr);
-                data->set_param(key, unique_ptr<Script>(scr));
+                //data->set_param(key, shared_ptr<Script>(scr));
             } else {
                 throw string("Expected declaration of script name.");
             }
