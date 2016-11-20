@@ -29,7 +29,7 @@ private:
     std::unordered_map<unsigned int, std::shared_ptr<Param> > params;
 public:
     Parametrized();
-    void add_param(unsigned int, std::shared_ptr<Param>);
+    virtual void add_param(unsigned int, std::shared_ptr<Param>);
     template <class T> void set_param(unsigned int, T);
     template <class T> T get_param(unsigned int);
     bool check_param(unsigned int);

@@ -15,8 +15,8 @@
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-std=gnu++11" />
-					<Add option="-std=c++11" />
 					<Add option="-DALLEGRO_STATICLINK" />
+					<Add directory="C:/Users/Zach/Documents/GitHub/adventure/adventure" />
 					<Add directory="C:/devel/allegro-5.2.1.1/include" />
 				</Compiler>
 				<Linker>
@@ -61,6 +61,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -72,13 +73,7 @@
 		</Compiler>
 		<Unit filename="area.cpp" />
 		<Unit filename="area.h" />
-		<Unit filename="data.cpp" />
-		<Unit filename="data.h" />
-		<Unit filename="data/main.dat" />
-		<Unit filename="data/objects/hla_objects.dat" />
-		<Unit filename="engine.cpp">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="engine.cpp" />
 		<Unit filename="form.cpp" />
 		<Unit filename="form.h" />
 		<Unit filename="geometry.cpp" />
@@ -98,9 +93,10 @@
 		<Unit filename="object.h" />
 		<Unit filename="options.cpp" />
 		<Unit filename="options.h" />
+		<Unit filename="param.cpp" />
+		<Unit filename="param.h" />
 		<Unit filename="run.h" />
-		<Unit filename="script.cpp" />
-		<Unit filename="script.h" />
+		<Unit filename="scripting.h" />
 		<Unit filename="state.cpp" />
 		<Unit filename="state.h" />
 		<Unit filename="wrapper.cpp" />

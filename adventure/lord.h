@@ -5,11 +5,13 @@ template <class T, class P>
 class Lord {
 protected:
     unsigned int capacity;
+    unsigned int last;
     T* vassals;
 
 public:
-    Lord() {
-        capacity = 8;
+    Lord(int ic = 8) {
+        capacity = ic;
+        last = 0;
         vassals = new T[capacity];
     }
 

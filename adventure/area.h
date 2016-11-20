@@ -8,7 +8,6 @@
 class Area: public Lord<Object*, Point*> {
 private:
     unsigned int first;
-    unsigned int last;
 
     Direction* face;
 
